@@ -1,0 +1,12 @@
+# Ignoring all hidden files for now..
+#
+.*
+target/
+data/
+attic/
+sandbox/
+
+# So you can move generated javadocs here
+apidocs/
+
+/bin/
