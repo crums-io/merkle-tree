@@ -11,6 +11,7 @@ import com.gnahraf.util.mrkl.index.TreeIndex;
 
 /**
  * 
+ * @see Builder
  */
 public class Tree {
   
@@ -78,11 +79,7 @@ public class Tree {
   
   
   
-  
-  
-  
-  
-  
+  // Instance definition follows..
   
 
   private final String algo;
@@ -113,6 +110,11 @@ public class Tree {
   
   public Node root() {
     return idx.getNode(0);
+  }
+  
+  
+  public String getHashAlgo() {
+    return algo;
   }
   
   

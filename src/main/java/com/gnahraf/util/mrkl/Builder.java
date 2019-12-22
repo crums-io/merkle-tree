@@ -66,10 +66,13 @@ public class Builder {
   public synchronized int add(byte[] item, int off, int len) throws IndexOutOfBoundsException {
     
     level(0).add(copy(item, off, len));
-      
-    for (int index = 0; levelPaired(index); ++index)
-      nextLevel(index).add(Tree.hashInternals(lastLeft(index), lastRight(index), digest));
     
+    if (levelPaired(0)) {
+      nextLevel(0).add(Tree.hashLeaves(lastLeft(0), lastRight(0), digest));
+      
+      for (int index = 1; levelPaired(index); ++index)
+        nextLevel(index).add(Tree.hashInternals(lastLeft(index), lastRight(index), digest));
+    }
     return count() - 1;
   }
   

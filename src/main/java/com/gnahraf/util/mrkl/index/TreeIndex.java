@@ -199,7 +199,7 @@ public class TreeIndex<N extends AbstractNode> {
   
   public final N getLeftChild(int level, int index) throws IndexOutOfBoundsException {
     Objects.checkFromToIndex(1, level, height());
-    return newNode(level - 1, index >> 1, false);
+    return newNode(level - 1, index << 1, false);
   }
   
   
@@ -212,7 +212,7 @@ public class TreeIndex<N extends AbstractNode> {
   
   public final N getRightChild(int level, int index) throws IndexOutOfBoundsException {
     Objects.checkFromToIndex(1, level, height());
-    return getSibling(level - 1, index >> 1);
+    return getSibling(level - 1, index << 1);
   }
   
   

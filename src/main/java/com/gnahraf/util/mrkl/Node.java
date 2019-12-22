@@ -97,6 +97,11 @@ public class Node extends AbstractNode {
   }
   
   
+  public final boolean isCarry() {
+    return !isLeaf() && leftChild().level() != rightChild().level();
+  }
+  
+  
   
   public final int leafCount() {
     return tree.idx().count();
