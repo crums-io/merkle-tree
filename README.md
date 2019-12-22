@@ -3,7 +3,7 @@
 A Merkle tree library written in Java.
 
 
-##Notes
+## Notes
 
 
 **Total Number of Nodes**
