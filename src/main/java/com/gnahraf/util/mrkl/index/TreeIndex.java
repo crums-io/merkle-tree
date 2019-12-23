@@ -78,13 +78,11 @@ public class TreeIndex<N extends AbstractNode> {
   
   /**
    * Returns the total number of nodes in the tree.
+   * 
+   * @return <tt>2 * count() - 1</tt>
    */
   public final int totalCount() {
-    // conjecture: = 2 * count() - 1. Working on mathematical proof.
-    int count = 0;
-    for (int level = levelCounts.length; level-- > 0; )
-      count += count(level);
-    return count;
+    return 2 * count() - 1;
   }
   
   

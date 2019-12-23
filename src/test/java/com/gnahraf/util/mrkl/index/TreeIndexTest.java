@@ -251,6 +251,31 @@ public class TreeIndexTest {
     assertRoot(tree, root);
   }
   
+
+  /**
+   * I should trust the proof.. but what about the implementation (?)
+   */
+  @Test
+  public void testTotalCount() {
+    int maxLeaves = 32 * 1024 * 1024;
+    for (int leaves = 2; leaves < maxLeaves; ++leaves)
+      assertTotalCount(TreeIndex.newGeneric(leaves));
+    
+    int end = Integer.MAX_VALUE / 2;
+    int start = end - maxLeaves;
+    for (int leaves = start; leaves < end; ++leaves)
+      assertTotalCount(TreeIndex.newGeneric(leaves));
+  }
+  
+  
+  private void assertTotalCount(TreeIndex<?> tree) {
+    int count = 0;
+    for (int level = 0; level <= tree.height(); ++level)
+      count += tree.count(level);
+    
+    assertEquals(count, tree.totalCount());
+  }
+  
   
   
   private int expectedHeightForCount(int count) {

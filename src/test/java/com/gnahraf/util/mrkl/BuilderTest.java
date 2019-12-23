@@ -254,6 +254,7 @@ public class BuilderTest {
   
   private void assertTree(byte[][] items, Tree tree) {
     assertEquals(items.length, tree.root().leafCount());
+    assertEquals(2 * items.length - 1, tree.idx().totalCount());
     assertHashRecurse(tree.root(), newDigest());
     Node root = tree.root();
     for (int index = 0; index < items.length; ++index)
