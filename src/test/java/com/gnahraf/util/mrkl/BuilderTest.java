@@ -7,7 +7,6 @@ package com.gnahraf.util.mrkl;
 import static org.junit.Assert.*;
 
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
 import org.junit.Test;
@@ -16,16 +15,14 @@ import org.junit.Test;
 /**
  * Tests Builder along with Node and Tree classes, since the 3 are interdependent.
  */
-public class BuilderTest {
-  
-  public final static String ALGO = "SHA-256";
+public class BuilderTest extends TreeTest {
   
   
   @Test
   public void testEmpty() {
     Builder builder = newBuilder();
     assertEquals(0, builder.count());
-    assertEquals(ALGO, builder.getHashAlgo());
+    assertEquals(algo, builder.getHashAlgo());
     try {
       builder.build();
       fail();
@@ -271,6 +268,9 @@ public class BuilderTest {
   
   
   private void assertHash(Node node, MessageDigest digest, boolean recurse) {
+    
+    node.verify(digest);
+    
     if (node.isLeaf())
       return;
     
@@ -316,20 +316,6 @@ public class BuilderTest {
       // pre-order traversal
       assertHash(left, digest, true);
       assertHash(right, digest, true);
-    }
-  }
-  
-  private Builder newBuilder() {
-    return new Builder(ALGO);
-  }
-  
-  
-  private MessageDigest newDigest() {
-    try {
-      return MessageDigest.getInstance(ALGO);
-    } catch (NoSuchAlgorithmException nsax) {
-      fail(nsax.getMessage());
-      return null;
     }
   }
 

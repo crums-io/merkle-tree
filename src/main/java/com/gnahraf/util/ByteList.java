@@ -15,6 +15,7 @@ import java.util.RandomAccess;
  * A read-only, copy-on-read view of a {@code List<byte[]>}. Some caveats about
  * breaking some corners of the <tt>List</tt> contract for sake of usability.
  * 
+ * @see #equals(Object)
  * @see #indexOf(Object)
  * @see #lastIndexOf(Object)
  */
@@ -91,6 +92,47 @@ public class ByteList extends AbstractList<byte[]> implements RandomAccess {
         return i.nextIndex();
     
     return -1;
+  }
+  
+  
+  /**
+   * An instance of this class may only equal another instance of itself. Technically, this is
+   * <em>not</em> a violation of the <tt>java.util.List</tt> contract since arrays in Java
+   * implement equality by reference, no other type of {@code List<byte[]>} instance can equal
+   * this instance anyway.
+   * <p>
+   * Equality here is implemented using {@linkplain Arrays#equals(byte[], byte[])}.
+   * </p>
+   * 
+   * @see #hashCode()
+   */
+  @Override
+  public final boolean equals(Object o) {
+    if (o == this)
+      return true;
+    else if (o instanceof ByteList) {
+      ByteList other = (ByteList) o;
+      if (size() != other.size())
+        return false;
+      for (int index = size(); index-- > 0; )
+        if (!Arrays.equals(source.get(index), other.source.get(index)))
+          return false;
+      return true;
+    } else  // we don't consider generic List<byte[]> types
+            // because of the reflexitivity requirement
+      return false;
+  }
+  
+  
+  /**
+   * Consistent with {@linkplain #equals(Object)}.
+   */
+  @Override
+  public final int hashCode() {
+    int hash = 0;
+    for (int index = size(); index-- > 0; )
+      hash ^= Arrays.hashCode(source.get(index));
+    return hash;
   }
   
   

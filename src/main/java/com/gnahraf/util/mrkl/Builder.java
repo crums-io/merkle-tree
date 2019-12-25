@@ -14,7 +14,7 @@ import com.gnahraf.util.mrkl.index.AbstractNode;
 import com.gnahraf.util.mrkl.index.TreeIndex;
 
 /**
- * 
+ * Collects items (byte arrays) and builds a Merkle tree.
  */
 public class Builder {
   

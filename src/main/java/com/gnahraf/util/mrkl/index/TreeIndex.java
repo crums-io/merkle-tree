@@ -10,7 +10,9 @@ import java.util.Objects;
  * A breadth-first view of the <em>structure</em> of a Merkle tree. In this view
  * each node is represented by 2 coordinates <tt>(<em>level, index</em>)</tt>.
  * Levels are counted up from the leaf nodes, with the leaves at level zero; <em>
- * index</em> is just an index into nodes at that level.
+ * index</em> is just an index into nodes at that level. Instances are immutable and
+ * safe under concurrent access.
+ * 
  * <h3>Terminology</h3>
  * <p>
  * Most expositions use the term "promoted" to describe how the last <em>odd</em> node at a

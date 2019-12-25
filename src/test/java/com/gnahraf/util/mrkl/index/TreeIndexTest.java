@@ -257,11 +257,11 @@ public class TreeIndexTest {
    */
   @Test
   public void testTotalCount() {
-    int maxLeaves = 32 * 1024 * 1024;
+    int maxLeaves = 32 * 1024 * 1024 + 32;
     for (int leaves = 2; leaves < maxLeaves; ++leaves)
       assertTotalCount(TreeIndex.newGeneric(leaves));
     
-    int end = Integer.MAX_VALUE / 2;
+    int end = 1 + Integer.MAX_VALUE / 2;
     int start = end - maxLeaves;
     for (int leaves = start; leaves < end; ++leaves)
       assertTotalCount(TreeIndex.newGeneric(leaves));

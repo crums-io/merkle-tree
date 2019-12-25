@@ -3,11 +3,24 @@
  */
 package com.gnahraf.util.mrkl;
 
+
+import java.security.MessageDigest;
+
 import com.gnahraf.util.mrkl.index.AbstractNode;
-import com.gnahraf.util.mrkl.index.TreeIndex;
 
 /**
+ * Merkle tree node. Besides its coordinates (level, index), each node holds
+ * {@linkplain #data() data}, which for internal nodes is a fixed-width signature.
+ * (The leaf nodes can be anything--including another signature.) Instances are
+ * immutable, so they're safe to pass around.
  * 
+ * <h4>Navigation</h4>
+ * 
+ * Supports navigating to parent, siblings, and children--as well as random access.
+ * Note these access methods return a <em>new</em> object every time they're invoked.
+ * (This is to minimize the memory footprint of large trees.) Equality and hashCode
+ * semantics are properly implemented, so as long as you don't compare instances by
+ * reference, you'll be OK.
  */
 public class Node extends AbstractNode {
 
@@ -24,17 +37,28 @@ public class Node extends AbstractNode {
     return tree.idx().isRight(level(), index());
   }
   
-  
+  /**
+   * Returns the node's <em>serial</em> index.
+   */
   public final int serialIndex() {
     return tree.idx().serialIndex(level(), index());
   }
   
   
+  /**
+   * Returns a copy of the node's data.
+   */
   public byte[] data() {
     return tree.data(level(), index());
   }
   
   
+  /**
+   * Verifies the hash of this node against its children, if it hash any.
+   */
+  public boolean verify(MessageDigest digest) {
+    return tree.verify(this, digest);
+  }
   
   
   
@@ -107,8 +131,9 @@ public class Node extends AbstractNode {
     return tree.idx().count();
   }
   
-  public TreeIndex<Node> getTree() {
-    return tree.idx();
+  
+  public Tree tree() {
+    return tree;
   }
 
 }

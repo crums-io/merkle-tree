@@ -54,6 +54,9 @@ public abstract class AbstractNode {
   }
   
   
+  /**
+   * Determines whether this node is at level zero.
+   */
   public final boolean isLeaf() {
     return level == 0;
   }

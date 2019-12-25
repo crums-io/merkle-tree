@@ -4,12 +4,16 @@
 package com.gnahraf.util.mrkl;
 
 
+import java.nio.BufferOverflowException;
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.Objects;
 
 import com.gnahraf.util.mrkl.index.TreeIndex;
 
 /**
+ * Instances are immutable.
  * 
  * @see Builder
  */
@@ -108,29 +112,76 @@ public class Tree {
   }
   
   
-  public Node root() {
+  public final Node root() {
     return idx.getNode(0);
   }
   
   
-  public String getHashAlgo() {
+  public final String getHashAlgo() {
     return algo;
   }
   
   
+  public final boolean verify(Node node, MessageDigest digest) {
+    Objects.requireNonNull(node, "node");
+    Objects.requireNonNull(digest, "digest");
+    if (!algo.equals(digest.getAlgorithm()))
+      throw new IllegalArgumentException(
+          "Algo mismatch. Expected '" + algo + "'; digest's is '" + digest.getAlgorithm() + "'");
+    
+    if (node.isLeaf())
+      return true;
+    
+    byte[] hash;
+    try {
+      byte[] left = data[ node.leftChild().serialIndex() ];
+      byte[] right = data[ node.rightChild().serialIndex() ];
+      
+      if (node.isCarry() && node.rightChild().isLeaf())
+        hash = hashUncommon(left, right, digest);
+      else if (node.level() == 1)
+        hash = hashLeaves(left, right, digest);
+      else
+        hash = hashInternals(left, right, digest);
+      
+    } catch (IllegalArgumentException iax) {
+      return false;
+    }
+    
+    return Arrays.equals(hash, data[ node.serialIndex() ]);
+  }
+  
+  
   /**
-   * @see Node
+   * Returns the random access index into tree structure.
    */
-  TreeIndex<Node> idx() {
+  public final TreeIndex<Node> idx() {
     return idx;
   }
   
   /**
+   * Returns [a copy of] the data for the node at the specified coordinates.
+   * 
    * @see Node#data()
+   * @see #data(int, int, ByteBuffer)
    */
-  byte[] data(int level, int index) {
+  public final byte[] data(int level, int index) {
     int serialIndex = idx.serialIndex(level, index);
-    return data[serialIndex];
+    return copy(data[serialIndex]);
+  }
+  
+  
+  /**
+   * Copies the data for the node at the specified coordinates into the
+   * given <tt>out</tt> buffer. On return, the position of the buffer is advanced;
+   * its mark and limit remain unchanged.
+   * <p>
+   * Added to support serialization.
+   * </p>
+   */
+  public final void data(int level, int index, ByteBuffer out) throws BufferOverflowException {
+    int serialIndex = idx.serialIndex(level, index);
+    out.put(data[serialIndex]);
   }
   
   
