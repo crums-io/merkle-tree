@@ -33,7 +33,7 @@ in the pre-built tree. Note the one-to-one correspondence between `1` bits in le
 
 The tree is completed by successively joining unpaired nodes at different levels and forming a parent node at one level above its left child. The process begins at the bottom and works its way to the top of the tree. A parent node constructed at this stage I'm calling a *carry* (marked amber). The built tree in our example looks like this.
 
-<img src="https://docs.google.com/drawings/d/e/2PACX-1vSoIG26qrsT9JaL6AGoG2HZE5JP-uhAG8nEkQ1VzcGcrBwAh2S2-czIv9U-upf144erF9GS3Kkq0AED/pub?w=480&amp;h=231">
+<img src="https://docs.google.com/drawings/d/e/2PACX-1vSoIG26qrsT9JaL6AGoG2HZE5JP-uhAG8nEkQ1VzcGcrBwAh2S2-czIv9U-upf144erF9GS3Kkq0AED/pub?w=481&amp;h=259">
 
 Note that carries (plural for carry) can themselves be unpaired.
 
