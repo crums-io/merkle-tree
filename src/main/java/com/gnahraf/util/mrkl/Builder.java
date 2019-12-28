@@ -4,11 +4,12 @@
 package com.gnahraf.util.mrkl;
 
 
+import static com.gnahraf.util.Bytes.copy;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import com.gnahraf.util.mrkl.index.AbstractNode;
 import com.gnahraf.util.mrkl.index.TreeIndex;
@@ -159,13 +160,13 @@ public class Builder {
   
   
   
-  private byte[] copy(byte[] data, int off, int len) {
-    Objects.checkFromIndexSize(off, data.length, len);
-    byte[] copy = new byte[len];
-    for (int index = len; index-- > 0;)
-      copy[index] = data[off + index];
-    return copy;
-  }
+//  private byte[] copy(byte[] data, int off, int len) {
+//    Objects.checkFromIndexSize(off, data.length, len);
+//    byte[] copy = new byte[len];
+//    for (int index = len; index-- > 0;)
+//      copy[index] = data[off + index];
+//    return copy;
+//  }
   
   
   private int levelSize(int level) {

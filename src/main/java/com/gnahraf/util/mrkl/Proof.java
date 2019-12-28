@@ -8,6 +8,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import com.gnahraf.util.ByteList;
 import com.gnahraf.util.mrkl.index.AbstractNode;
@@ -41,6 +42,15 @@ public class Proof {
     chain.add(tree.root().data());
     
     this.hashChain = new ByteList(chain);
+  }
+  
+  
+  public Proof(String algo, int leafCount, int leafIndex, byte[][] chain) {
+    this.algo = Objects.requireNonNull(algo, "algo");
+    Objects.checkIndex(leafIndex, leafCount);
+    this.leafCount = leafCount;
+    this.leafIndex = leafIndex;
+    this.hashChain = ByteList.newInstance(chain);
   }
   
   
