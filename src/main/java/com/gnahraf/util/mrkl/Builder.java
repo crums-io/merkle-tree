@@ -19,8 +19,8 @@ import com.gnahraf.util.mrkl.index.TreeIndex;
  */
 public class Builder {
   
-  private final List<List<byte[]>> data = new ArrayList<>();
-  private final MessageDigest digest;
+  protected final List<List<byte[]>> data = new ArrayList<>();
+  protected final MessageDigest digest;
 
   /**
    * Creates a new instance with a dedicated <tt>MessageDigest</tt> using the
@@ -120,13 +120,14 @@ public class Builder {
       assert levelSize(level) == idx.count(level);
     }
     
+    
     byte[][] bb = new byte[idx.totalCount()][];
     
     for (int serialIndex = 0, level = idx.height(); level >= 0; --level)
       for (int index = 0; index < levelSize(level); ++index, ++serialIndex)
         bb[serialIndex] = level(level).get(index);
     
-    Tree tree = new Tree(bb, count(), getHashAlgo(), false);
+    Tree tree = new FreeLeafTree(bb, count(), getHashAlgo(), false);
     
     clear();
     

@@ -4,8 +4,6 @@
 package com.gnahraf.util.mrkl;
 
 
-import java.nio.BufferOverflowException;
-import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Objects;
@@ -17,7 +15,7 @@ import com.gnahraf.util.mrkl.index.TreeIndex;
  * 
  * @see Builder
  */
-public class Tree {
+public abstract class Tree {
   
   // Static hashing support
   
@@ -88,7 +86,6 @@ public class Tree {
 
   private final String algo;
   private final TreeIndex<Node> idx;
-  private final byte[][] data;
 
   /**
    * 
@@ -107,7 +104,6 @@ public class Tree {
       throw new IllegalArgumentException(
           "expected " + idx.totalCount() + " data elements for " +
               leaves + " many leaves; only " + data.length + " are given");
-    this.data = copy ? deepCopy(data) : data;
     
   }
   
@@ -122,20 +118,29 @@ public class Tree {
   }
   
   
+  /**
+   * Returns the random access index into tree structure.
+   */
+  public final TreeIndex<Node> idx() {
+    return idx;
+  }
+  
+
+  
   public final boolean verify(Node node, MessageDigest digest) {
     Objects.requireNonNull(node, "node");
     Objects.requireNonNull(digest, "digest");
-    if (!algo.equals(digest.getAlgorithm()))
+    if (!getHashAlgo().equals(digest.getAlgorithm()))
       throw new IllegalArgumentException(
-          "Algo mismatch. Expected '" + algo + "'; digest's is '" + digest.getAlgorithm() + "'");
+          "Algo mismatch. Expected '" + getHashAlgo() + "'; digest's is '" + digest.getAlgorithm() + "'");
     
     if (node.isLeaf())
       return true;
     
     byte[] hash;
     try {
-      byte[] left = data[ node.leftChild().serialIndex() ];
-      byte[] right = data[ node.rightChild().serialIndex() ];
+      byte[] left = data( node.leftChild().serialIndex() );
+      byte[] right = data( node.rightChild().serialIndex() );
       
       if (node.isCarry() && node.rightChild().isLeaf())
         hash = hashUncommon(left, right, digest);
@@ -148,15 +153,7 @@ public class Tree {
       return false;
     }
     
-    return Arrays.equals(hash, data[ node.serialIndex() ]);
-  }
-  
-  
-  /**
-   * Returns the random access index into tree structure.
-   */
-  public final TreeIndex<Node> idx() {
-    return idx;
+    return Arrays.equals(hash, data(node.serialIndex()) );
   }
   
   /**
@@ -166,33 +163,38 @@ public class Tree {
    * @see #data(int, int, ByteBuffer)
    */
   public final byte[] data(int level, int index) {
-    int serialIndex = idx.serialIndex(level, index);
-    return copy(data[serialIndex]);
+    int serialIndex = idx().serialIndex(level, index);
+    return data(serialIndex);
   }
+  
+  
   
   
   /**
-   * Copies the data for the node at the specified coordinates into the
-   * given <tt>out</tt> buffer. On return, the position of the buffer is advanced;
-   * its mark and limit remain unchanged.
-   * <p>
-   * Added to support serialization.
-   * </p>
+   * Returns [a copy of] the data for the node at the given serial index.
+   * 
+   * @see Node#data()
+   * @see #data(int, int, ByteBuffer)
    */
-  public final void data(int level, int index, ByteBuffer out) throws BufferOverflowException {
-    int serialIndex = idx.serialIndex(level, index);
-    out.put(data[serialIndex]);
-  }
+  public abstract byte[] data(int serialIndex);
+  
+  
+//  /**
+//   * Copies the data for the node at the specified coordinates into the
+//   * given <tt>out</tt> buffer. On return, the position of the buffer is advanced;
+//   * its mark and limit remain unchanged.
+//   * <p>
+//   * Added to support serialization.
+//   * </p>
+//   */
+//  public final void data(int level, int index, ByteBuffer out) throws BufferOverflowException {
+//    int serialIndex = idx.serialIndex(level, index);
+//    out.put(data[serialIndex]);
+//  }
   
   
   
   
-  private byte[][] deepCopy(byte[][] data) {
-    byte[][] copy = new byte[data.length][];
-    for (int index = data.length; index-- > 0; )
-      copy[index] = copy(data[index]);
-    return copy;
-  }
   
   private byte[] copy(byte[] array) {
     byte[] copy = new byte[array.length];
