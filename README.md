@@ -38,6 +38,13 @@ The tree is completed by successively joining unpaired nodes at different levels
 Note that carries (plural for carry) can themselves be unpaired.
 
 
+
+## Hash Computation
+
+A parent node's *data* in a Merkle tree is a hash of its children's data. Order matters: its a hash of the concatenation of the left child with the right child. This implementation prepends a leaf node's data with
+a `0` [byte] and an branch (internal) node's data with a `1` per the recommendation by the Certificate Transparency to thwart the "2nd pre-image attack". This is perhaps unnecessary here, since that attack only works if the height of the tree is not known. Still, a nice to have. (See `Tree.java` if you need to edit these pre-pended paddings out.)
+
+
 ## API
 
 There are only a few classes in this [API](https://github.com/gnahraf/merkle-tree/tree/master/src/main/java/com/gnahraf/util/mrkl).
