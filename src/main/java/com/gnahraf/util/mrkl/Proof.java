@@ -10,15 +10,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import com.gnahraf.util.ByteList;
+import com.gnahraf.util.mem.ByteList;
 import com.gnahraf.util.mrkl.index.AbstractNode;
 import com.gnahraf.util.mrkl.index.TreeIndex;
 
 /**
  * A cryptographic path from an item (expressed in bytes) to the
- * root of a Merkle tree.
+ * root of a Merkle tree. Note although instances are immutable, a reference to one
+ * does <em>not</em> imply a {@linkplain #verify(MessageDigest) verified} proof.
+ * For such a guarantee, considering defining a subclass.
  * 
  * @see #hashChain()
+ * @see #verify(MessageDigest)
  */
 public class Proof {
   

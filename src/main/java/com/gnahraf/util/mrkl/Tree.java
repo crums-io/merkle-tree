@@ -11,9 +11,12 @@ import java.util.Objects;
 import com.gnahraf.util.mrkl.index.TreeIndex;
 
 /**
- * Instances are immutable.
+ * The Merkle tree. Instances are immutable. This class abstracts away the
+ * memory layout for the tree.
  * 
  * @see Builder
+ * @see FixedWidthTree
+ * @see FreeLeafTree
  */
 public abstract class Tree {
   
@@ -86,24 +89,17 @@ public abstract class Tree {
 
   private final String algo;
   private final TreeIndex<Node> idx;
-
+  
+  
   /**
+   * Base constructor creates an index and locks down the algo.
    * 
+   * @param leaves  the number of leaf nodes in the tree
+   * @param algo    the hash algo used for the trees internal nodes.
    */
-  public Tree(byte[][] data, int leaves, String algo) {
-    this(data, leaves, algo, true);
-  }
-  
-  
-  Tree(byte[][] data, int leaves, String algo, boolean copy) {
+  protected Tree(int leaves, String algo) {
     this.algo = Objects.requireNonNull(algo, "algo");
-    Objects.requireNonNull(data, "data");
     this.idx = new TreeIndex<>(leaves, new NodeFactory());
-    
-    if (data.length != idx.totalCount())
-      throw new IllegalArgumentException(
-          "expected " + idx.totalCount() + " data elements for " +
-              leaves + " many leaves; only " + data.length + " are given");
     
   }
   
@@ -139,8 +135,8 @@ public abstract class Tree {
     
     byte[] hash;
     try {
-      byte[] left = data( node.leftChild().serialIndex() );
-      byte[] right = data( node.rightChild().serialIndex() );
+      byte[] left = data( node.leftChild() );
+      byte[] right = data( node.rightChild() );
       
       if (node.isCarry() && node.rightChild().isLeaf())
         hash = hashUncommon(left, right, digest);
@@ -153,7 +149,12 @@ public abstract class Tree {
       return false;
     }
     
-    return Arrays.equals(hash, data(node.serialIndex()) );
+    return Arrays.equals(hash, data(node) );
+  }
+  
+  
+  final byte[] data(Node node) {
+    return data(node.level(), node.index());
   }
   
   /**
@@ -162,46 +163,19 @@ public abstract class Tree {
    * @see Node#data()
    * @see #data(int, int, ByteBuffer)
    */
-  public final byte[] data(int level, int index) {
-    int serialIndex = idx().serialIndex(level, index);
-    return data(serialIndex);
-  }
-  
-  
+  public abstract byte[] data(int level, int index);
   
   
   /**
-   * Returns [a copy of] the data for the node at the given serial index.
-   * 
-   * @see Node#data()
-   * @see #data(int, int, ByteBuffer)
+   * For debug use.
    */
-  public abstract byte[] data(int serialIndex);
-  
-  
-//  /**
-//   * Copies the data for the node at the specified coordinates into the
-//   * given <tt>out</tt> buffer. On return, the position of the buffer is advanced;
-//   * its mark and limit remain unchanged.
-//   * <p>
-//   * Added to support serialization.
-//   * </p>
-//   */
-//  public final void data(int level, int index, ByteBuffer out) throws BufferOverflowException {
-//    int serialIndex = idx.serialIndex(level, index);
-//    out.put(data[serialIndex]);
-//  }
-  
-  
-  
-  
-  
-  private byte[] copy(byte[] array) {
-    byte[] copy = new byte[array.length];
-    for (int index = array.length; index-- > 0;)
-      copy[index] = array[index];
-    return copy;
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "[" + algo + ":" + idx.count() + "]";
   }
+  
+  
+
   
   
   private class NodeFactory implements TreeIndex.NodeFactory<Node> {

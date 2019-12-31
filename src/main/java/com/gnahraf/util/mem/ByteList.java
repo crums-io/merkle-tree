@@ -1,10 +1,10 @@
 /*
  * Copyright 2019 Babak Farhang
  */
-package com.gnahraf.util;
+package com.gnahraf.util.mem;
 
 
-import static com.gnahraf.util.Bytes.copy;
+import static com.gnahraf.util.mem.Bytes.copy;
 
 import java.util.AbstractList;
 import java.util.ArrayList;

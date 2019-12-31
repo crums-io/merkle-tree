@@ -38,7 +38,9 @@ public class Node extends AbstractNode {
   }
   
   /**
-   * Returns the node's <em>serial</em> index.
+   * Returns the node's <em>serial</em> index. This is equal to the number of nodes preceding this node
+   * in a breadth-first traversal of the tree. The root node, therefore, returns 0; the last leaf returns
+   * 2 x {@linkplain #leafCount() leafCount} - 2. 
    */
   public final int serialIndex() {
     return tree.idx().serialIndex(level(), index());
@@ -126,7 +128,9 @@ public class Node extends AbstractNode {
   }
   
   
-  
+  /**
+   * Returns the total number of leaves in the tree this node belongs to.
+   */
   public final int leafCount() {
     return tree.idx().count();
   }

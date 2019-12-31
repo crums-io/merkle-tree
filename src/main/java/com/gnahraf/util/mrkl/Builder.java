@@ -4,7 +4,7 @@
 package com.gnahraf.util.mrkl;
 
 
-import static com.gnahraf.util.Bytes.copy;
+import static com.gnahraf.util.mem.Bytes.*;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -15,12 +15,26 @@ import com.gnahraf.util.mrkl.index.AbstractNode;
 import com.gnahraf.util.mrkl.index.TreeIndex;
 
 /**
- * Collects items (byte arrays) and builds a Merkle tree.
+ * Collects items (byte arrays) and builds a Merkle tree. If all the items (the leaves of the tree)
+ * {@linkplain #add(byte[]) added} are fixed-width (and the tree's data fits under 1GB memory), then the instance
+ * builds a {@linkplain FixedWidthTree}; otherwise, it builds a {@linkplain FreeLeafTree} instance.
  */
 public class Builder {
   
+  /**
+   * Breadth-first view of the nodes' data.
+   */
   protected final List<List<byte[]>> data = new ArrayList<>();
   protected final MessageDigest digest;
+  
+  /**
+   * Keeps track of the leaf widths seen. -2 means unset; -1 means multiple widths seen.
+   */
+  private int leafWidth = LEAFWIDTH_UNSET;
+  
+  private final static int LEAFWIDTH_UNSET = -2;
+  private final static int LEAFWIDTH_VARIABLE = -1;
+  
 
   /**
    * Creates a new instance with a dedicated <tt>MessageDigest</tt> using the
@@ -47,6 +61,8 @@ public class Builder {
    * @param item  the item's data (copied)
    * 
    * @return      the item's leaf node index in the to-be built tree
+   * 
+   * @see #add(byte[], int, int)
    */
   public int add(byte[] item) {
     return add(item, 0, item.length);
@@ -67,6 +83,9 @@ public class Builder {
   public synchronized int add(byte[] item, int off, int len) throws IndexOutOfBoundsException {
     
     level(0).add(copy(item, off, len));
+    
+    if (len != leafWidth && leafWidth != LEAFWIDTH_VARIABLE)
+      leafWidth = (leafWidth == LEAFWIDTH_UNSET) ? len : LEAFWIDTH_VARIABLE;
     
     if (levelPaired(0)) {
       nextLevel(0).add(Tree.hashLeaves(lastLeft(0), lastRight(0), digest));
@@ -120,14 +139,48 @@ public class Builder {
       assert levelSize(level) == idx.count(level);
     }
     
+    Tree tree;
     
-    byte[][] bb = new byte[idx.totalCount()][];
+    assert leafWidth != LEAFWIDTH_UNSET;
     
-    for (int serialIndex = 0, level = idx.height(); level >= 0; --level)
-      for (int index = 0; index < levelSize(level); ++index, ++serialIndex)
-        bb[serialIndex] = level(level).get(index);
+    int fixedByteSize =
+        leafWidth == LEAFWIDTH_VARIABLE ?
+            -1 :
+              FixedWidthTree.dataLength(
+                  count(),
+                  digest.getDigestLength(),
+                  leafWidth);
     
-    Tree tree = new FreeLeafTree(bb, count(), getHashAlgo(), false);
+    
+    if (fixedByteSize <= 0) {
+      
+      byte[][] bb = new byte[idx.totalCount()][];
+      
+      for (int serialIndex = 0, level = idx.height(); level >= 0; --level)
+        for (int index = 0; index < levelSize(level); ++index, ++serialIndex)
+          bb[serialIndex] = level(level).get(index); 
+      
+      
+      tree = new FreeLeafTree(bb, count(), getHashAlgo(), false);
+      
+    } else {
+      
+      byte[] b = new byte[fixedByteSize];
+      
+      int pos = 0;
+      int pWidth = digest.getDigestLength();
+      
+      for (int level = idx.height(); level > 0; --level) 
+        for (int index = 0; index < levelSize(level); ++index, pos += pWidth)
+          transfer(level(level).get(index), b, pos);
+      
+      for (int index = 0; index < count(); ++index, pos += leafWidth)
+        transfer(level(0).get(index), b, pos);
+      
+      assert pos == b.length;
+      
+      tree = new FixedWidthTree(count(), getHashAlgo(), b, pWidth, leafWidth);
+    }
     
     clear();
     
@@ -143,6 +196,7 @@ public class Builder {
     data.forEach(level -> level.clear());
     data.clear();
     data.add(new ArrayList<>());
+    leafWidth = LEAFWIDTH_UNSET;
   }
   
   
@@ -160,14 +214,6 @@ public class Builder {
   
   
   
-  
-//  private byte[] copy(byte[] data, int off, int len) {
-//    Objects.checkFromIndexSize(off, data.length, len);
-//    byte[] copy = new byte[len];
-//    for (int index = len; index-- > 0;)
-//      copy[index] = data[off + index];
-//    return copy;
-//  }
   
   
   private int levelSize(int level) {

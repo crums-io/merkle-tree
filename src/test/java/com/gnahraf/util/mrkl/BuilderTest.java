@@ -198,6 +198,24 @@ public class BuilderTest extends TreeTest {
   }
   
   
+  
+  @Test
+  public void test09_F() {
+    byte[][] items = {
+        { 0, 2, 3, 1 },
+        { 5, 6, 7, 8 },
+        { 9, 0xa, 0xb, 0xc},
+        { 0xd, 0xe, 0xf, 0x10},
+        { 0x11, 0x12, 0x13, 9 },
+        { 0x12, 0x14, 0x70, 0x6e },
+        { 5, 6, 7, 10 },
+        { 0, 0x1b, 0x55, 0x2d },
+        { 12, -12, -128, 127 },
+    };
+    testItems(items);
+  }
+  
+  
   @Test
   public void testBig1M() {
     int count = 1024*1024;
@@ -220,14 +238,15 @@ public class BuilderTest extends TreeTest {
   @Test
   public void testBig1M_1() {
     int count = 1024*1024 - 1;
-    int minDataLen = 3;
-    int maxDataLen = 16;
-    int dataLenRange = 1 + maxDataLen - minDataLen;
+//    int minDataLen = 3;
+//    int maxDataLen = 16;
+    int dataLen = 127;
+//    int dataLenRange = 1 + maxDataLen - minDataLen;
     
     Random rand = new Random(12);
     byte[][] items = new byte[count][];
     for (int i = 0; i < count; ++i) {
-      int dataLen = minDataLen + rand.nextInt(dataLenRange);
+//      int dataLen = minDataLen + rand.nextInt(dataLenRange);
       byte[] data = new byte[dataLen];
       rand.nextBytes(data);
       items[i] = data;
@@ -245,6 +264,7 @@ public class BuilderTest extends TreeTest {
       builder.add(item);
     }
     Tree tree = builder.build();
+//    System.out.println(tree);
     assertTree(items, tree);
   }
   
