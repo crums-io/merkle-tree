@@ -4,7 +4,7 @@ A Merkle tree library written in Java.
 
 ## Design Goals
 
-A easy-to-understand, fast, tamper-proof API for building, navigating Merkle tree structures. Support for Merkle tree
+An easy-to-understand, fast, tamper-proof API for building, navigating Merkle tree structures. Support for Merkle tree
 proofs (of existence) and serialization (in progress).
 
 
@@ -35,13 +35,13 @@ The tree is completed by successively joining unpaired nodes at different levels
 
 <img src="https://docs.google.com/drawings/d/e/2PACX-1vSoIG26qrsT9JaL6AGoG2HZE5JP-uhAG8nEkQ1VzcGcrBwAh2S2-czIv9U-upf144erF9GS3Kkq0AED/pub?w=481&amp;h=259">
 
-Note that carries (plural for carry) can themselves be unpaired.
+Note that carries (plural for carry) can themselves be unpaired (at their own respective levels); however as the tree is built from the bottom up, there is always at least one remaining unpaired node at a level above (since the root node at pre-build is always unpaired) with which it can pair to build a parent.
 
 
 
 ## Hash Computation
 
-A parent node's *data* in a Merkle tree is a hash of its children's data. Order matters: its a hash of the concatenation of the left child with the right child. This implementation prepends a leaf node's data with
+A parent node's *data* in a Merkle tree is a hash of its children's data. Order matters: it's a hash of the concatenation of the left child with the right child. This implementation prepends a leaf node's data with
 a `0` [byte] and an branch (internal) node's data with a `1` per the recommendation by the Certificate Transparency to thwart the "2nd pre-image attack". This is perhaps unnecessary here, since that attack only works if the height of the tree is not known. Still, a nice to have. (See `Tree.java` if you need to edit these pre-pended paddings out.)
 
 
