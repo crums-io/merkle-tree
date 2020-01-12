@@ -4,7 +4,8 @@
 package com.gnahraf.util.mrkl;
 
 
-import static com.gnahraf.util.mem.Bytes.*;
+import static com.gnahraf.util.mem.Bytes.copy;
+import static com.gnahraf.util.mem.Bytes.transfer;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -26,6 +27,7 @@ public class Builder {
    */
   protected final List<List<byte[]>> data = new ArrayList<>();
   protected final MessageDigest digest;
+  protected final boolean copyOnWrite;
   
   /**
    * Keeps track of the leaf widths seen. -2 means unset; -1 means multiple widths seen.
@@ -45,11 +47,25 @@ public class Builder {
    * @throws IllegalArgumentException in lieu of checked <tt>NoSuchAlgorithmException</tt>
    */
   public Builder(String algo) throws IllegalArgumentException {
+    this(algo, true);
+  }
+  
+
+  /**
+   * Creates a new instance with a dedicated <tt>MessageDigest</tt> using the
+   * given hashing algorithm.
+   * 
+   * @param algo the digest algorithm (e.g. MD5, SHA-1, SHA-256)
+   * 
+   * @throws IllegalArgumentException in lieu of checked <tt>NoSuchAlgorithmException</tt>
+   */
+  public Builder(String algo, boolean copyOnWrite) throws IllegalArgumentException {
     try {
       digest = MessageDigest.getInstance(algo);
     } catch (NoSuchAlgorithmException nsax) {
       throw new IllegalArgumentException("algo: " + algo, nsax);
     }
+    this.copyOnWrite = copyOnWrite;
     data.add(new ArrayList<>());
   }
   
@@ -82,7 +98,7 @@ public class Builder {
    */
   public synchronized int add(byte[] item, int off, int len) throws IndexOutOfBoundsException {
     
-    level(0).add(copy(item, off, len));
+    level(0).add(copyImpl(item, off, len));
     
     if (len != leafWidth && leafWidth != LEAFWIDTH_VARIABLE)
       leafWidth = (leafWidth == LEAFWIDTH_UNSET) ? len : LEAFWIDTH_VARIABLE;
@@ -97,6 +113,12 @@ public class Builder {
   }
   
   
+  private byte[] copyImpl(byte[] item, int off, int len) {
+    if (copyOnWrite || off != 0 || len != item.length)
+      return copy(item, off, len);
+    else
+      return item;
+  }
   
   
   /**
