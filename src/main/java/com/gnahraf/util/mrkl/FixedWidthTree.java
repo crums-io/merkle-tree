@@ -6,6 +6,7 @@ package com.gnahraf.util.mrkl;
 
 import static com.gnahraf.util.mem.Bytes.copy;
 
+import java.nio.ByteBuffer;
 import java.util.Objects;
 
 /**
@@ -64,6 +65,31 @@ public class FixedWidthTree extends Tree {
       int offset = idx().serialIndex(level, index) * algoWidth;
       return copy(data, offset, algoWidth);
     }
+  }
+  
+  
+  /**
+   * Returns the fixed-size leaf width.
+   * 
+   * @return in bytes
+   */
+  public int leafWidth() {
+    return leafWidth;
+  }
+  
+  
+  /**
+   * Returns the leaves' data block.
+   * 
+   * @return a new <em>read-only</em> view of leaves' block.
+   */
+  public ByteBuffer leavesBlock() {
+    return ByteBuffer.wrap(data, levelZeroOffset, leafWidth * idx().count()).asReadOnlyBuffer();
+  }
+  
+  
+  public int hashWidth() {
+    return algoWidth;
   }
   
   
