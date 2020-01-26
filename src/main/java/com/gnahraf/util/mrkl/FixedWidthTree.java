@@ -106,7 +106,7 @@ public class FixedWidthTree extends Tree {
    * @return a new <em>read-only</em> view of leaves' block.
    */
   public ByteBuffer leavesBlock() {
-    return ByteBuffer.wrap(data, levelZeroOffset, leafWidth * idx().count()).asReadOnlyBuffer();
+    return ByteBuffer.wrap(data, levelZeroOffset, leafWidth * idx().count()).slice().asReadOnlyBuffer();
   }
   
   

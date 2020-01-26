@@ -85,8 +85,6 @@ public class BuilderTest extends TreeTest {
     assertHash(root, newDigest());
   }
   
-
-  
   
   
   @Test
