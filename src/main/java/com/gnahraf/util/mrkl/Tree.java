@@ -100,7 +100,14 @@ public abstract class Tree {
   protected Tree(int leaves, String algo) {
     this.algo = Objects.requireNonNull(algo, "algo");
     this.idx = new TreeIndex<>(leaves, new NodeFactory());
-    
+  }
+  
+  /**
+   * Copy constructor.
+   */
+  protected Tree(Tree copy) {
+    this.algo = copy.algo;
+    this.idx = copy.idx;
   }
   
   
