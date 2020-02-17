@@ -85,6 +85,17 @@ public class Builder {
   }
   
   
+  /**
+   * Convenience method to hash using this instance's digest {@linkplain #getHashAlgo() algo}.
+   * Does not affect the state of the builder.
+   * 
+   * @param data to be hashed
+   * @return a new array containing the hash
+   */
+  public synchronized byte[] hash(byte[] data) {
+    digest.reset();
+    return digest.digest(data);
+  }
   
   
   /**
