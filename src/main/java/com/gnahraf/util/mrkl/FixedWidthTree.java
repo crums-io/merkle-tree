@@ -13,7 +13,7 @@ import java.util.Objects;
  * A more compact <tt>Tree</tt> appropriate if the leaves are fixed-width
  * and it'all fits under a gigabyte.
  * 
- * @see #dataLength(int, int, int)
+ * @see #treeDataLength(int, int, int)
  */
 public class FixedWidthTree extends Tree {
   
@@ -93,7 +93,7 @@ public class FixedWidthTree extends Tree {
   /**
    * Returns entire data block.
    * 
-   * @return a new <em>read-only</em> view of leaves' block.
+   * @return a new <em>read-only</em> view of the entire block.
    */
   public ByteBuffer dataBlock() {
     return ByteBuffer.wrap(data).asReadOnlyBuffer();
@@ -110,6 +110,18 @@ public class FixedWidthTree extends Tree {
   }
   
   
+  /**
+   * Returns the data beyond the standard definition of the tree. This is a view of whatever bytes
+   * remain in the {@linkplain #dataBlock() data block} after the tree definition.
+   * 
+   * @return possibly empty extra block
+   */
+  protected ByteBuffer extraBlock() {
+    int startIndex = treeDataLength(idx().count(), algoWidth, leafWidth);
+    return ByteBuffer.wrap(data, startIndex, data.length - startIndex).slice().asReadOnlyBuffer();
+  }
+  
+  
   public int hashWidth() {
     return algoWidth;
   }
@@ -117,7 +129,7 @@ public class FixedWidthTree extends Tree {
   
   
   public static boolean fitsModelCapacity(int leaves, int algoWidth, int leafWidth) {
-    return dataLength(leaves, algoWidth, leafWidth) > 0;
+    return treeDataLength(leaves, algoWidth, leafWidth) > 0;
   }
   
   
@@ -125,7 +137,7 @@ public class FixedWidthTree extends Tree {
    * Returns the number of bytes needed to encode the state of the tree, or -1 if that
    * number exceeds the maximum <tt>int</tt> Java allows.
    */
-  public static int dataLength(int leaves, int algoWidth, int leafWidth) {
+  public static int treeDataLength(int leaves, int algoWidth, int leafWidth) {
     if (leaves < 2)
       throw new IllegalArgumentException("leaves (" + leaves + ") < 2");
     validateArgs(algoWidth, leafWidth);

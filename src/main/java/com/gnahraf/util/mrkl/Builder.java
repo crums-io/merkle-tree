@@ -179,7 +179,7 @@ public class Builder {
     int fixedByteSize =
         leafWidth == LEAFWIDTH_VARIABLE ?
             -1 :
-              FixedWidthTree.dataLength(
+              FixedWidthTree.treeDataLength(
                   count(),
                   digest.getDigestLength(),
                   leafWidth);
