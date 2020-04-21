@@ -49,11 +49,28 @@ public class Proof {
   
   
   public Proof(String algo, int leafCount, int leafIndex, byte[][] chain) {
+    this(algo, leafCount, leafIndex, chain, true);
+  }
+  
+  
+  public Proof(String algo, int leafCount, int leafIndex, byte[][] chain, boolean copy) {
     this.algo = Objects.requireNonNull(algo, "algo");
     Objects.checkIndex(leafIndex, leafCount);
     this.leafCount = leafCount;
     this.leafIndex = leafIndex;
-    this.hashChain = ByteList.newInstance(chain);
+    this.hashChain = ByteList.newInstance(chain, copy);
+  }
+  
+  
+  /**
+   * Copy constructor.
+   */
+  protected Proof(Proof copy) {
+    Objects.requireNonNull(copy, "null proof");
+    this.algo = copy.algo;
+    this.leafCount = copy.leafCount;
+    this.leafIndex = copy.leafIndex;
+    this.hashChain = copy.hashChain;
   }
   
   
