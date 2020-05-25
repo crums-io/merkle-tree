@@ -85,6 +85,7 @@ public class FixedWidthTree extends Tree {
    * 
    * @return in bytes
    */
+  @Override
   public int leafWidth() {
     return leafWidth;
   }

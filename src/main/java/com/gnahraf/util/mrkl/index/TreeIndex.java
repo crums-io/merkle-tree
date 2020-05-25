@@ -4,6 +4,9 @@
 package com.gnahraf.util.mrkl.index;
 
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -21,21 +24,22 @@ import java.util.Objects;
  * carry</em> to represent this special type of joining of two lower level nodes to form a
  * higher level parent. Except for the edge case involving such carries, a node's children
  * are always at adjacent indices at the level just below; for carries, however, a node's
- * children are always from different levels (with the left child always at a higher level
+ * children may be from different levels (with the left child always at the same or higher level
  * than the right child).
  * </p><p>
  * <ul>
- * <li><b>Carry.</b> The parent node formed when 2 nodes at different levels join.
+ * <li><b>Carry.</b> The parent node formed from 2 child nodes at different levels,
+ * or a parent node formed if one or more of its descendants have been so formed. 
  * There can only be one such node at any level, and then it may only be the node
  * at the last index at that level.</li>
  * 
- * <li><b>Joins Carry.</b> A child node of a <em>carry</em>.
- * There can only be one such node at any level, and then it may only be the node
- * at the last index at that level.</li>
+ * <li><b>Joins Carry.</b> A child node of a <em>carry</em>. The child node itself may or may not
+ * be a carry.
  * </ul>
  * </p><p>
- * Note a carry can itself <em>join</em> a carry.
- * </p>
+ * Note, the root node is itself usually a carry. The only times it's not is when the number of
+ * leaves is an exact power of 2 in which case there are no carries in the tree. Conversely, if
+ * a node is a carry, then every ancestor of it (including the root node), every is another carry.</p>
  * 
  * @see AbstractNode
  */
@@ -88,6 +92,28 @@ public class TreeIndex<N extends AbstractNode> {
   }
   
   
+  /**
+   * Returns the total number of carries (otherwise known as promoted nodes).
+   */
+  public final int totalCarries() {
+    return totalCount() - totalCountSansCarries();
+  }
+  
+  
+  /**
+   * Returns the total number of nodes in the tree excluding the carries.
+   * 
+   * @return the difference of {@linkplain #totalCount()} and {@linkplain #totalCarries()}
+   */
+  public final int totalCountSansCarries() {
+    int total = 0;
+    for (int level = height(); level >= 0; --level)
+      total += countSansCarry(level);
+    
+    return total;
+  }
+  
+  
   
   
   
@@ -119,6 +145,14 @@ public class TreeIndex<N extends AbstractNode> {
     return levelCounts[level];
   }
   
+  /**
+   * Returns the numbern of nodes at the given <tt>level</tt> excluding the
+   * carry (if it has one).
+   */
+  public final int countSansCarry(int level) {
+    return count() >> level;
+  }
+  
   
   /**
    * Returns the maximum allowed index at the given <tt>level</tt>.
@@ -135,8 +169,12 @@ public class TreeIndex<N extends AbstractNode> {
   }
   
   
+  /**
+   * Determines whether the last node is a carry. There is at most one carry in
+   * each level.
+   */
   public final boolean hasCarry(int level) throws IndexOutOfBoundsException {
-    return levelCounts[level] > (count() >> level);
+    return count(level) > countSansCarry(level);
   }
   
   
@@ -334,7 +372,40 @@ public class TreeIndex<N extends AbstractNode> {
     return !isRight(level, index);
   }
   
+  
+  /**
+   * Returns the frontier nodes. If you grow this tree (that is if you append more leaves)
+   * then part of new tree will contain exactly the same nodes.
+   * Unused meta at this time.
+   */
+  public final List<N> getFrontier() {
+    
+    int level = 0;
+    int levelCountSansCarry = count();
+    
+    final int frontierSize = Integer.bitCount(levelCountSansCarry);
+    ArrayList<N> frontier = new ArrayList<>(frontierSize);
+    
+    while (frontier.size() < frontierSize) {
+      if ((levelCountSansCarry & 1) == 1) {
+        int index = levelCountSansCarry - 1;
+        boolean right = isRight(level, index);
+        N node = newNode(level, index, right);
+        frontier.add(node);
+      }
+      ++level;
+      levelCountSansCarry >>= 1;
+    }
+    
+    return Collections.unmodifiableList(frontier);
+  }
+  
  
+  /**
+   * Determines whether an instance is structurally equivalent to another. I.e. it
+   * doesn't care about individual node values. As we know, only 1 parameter determines
+   * the structure: the leaf {@linkplain #count() count}.
+   */
   @Override
   public final boolean equals(Object o) {
     if (this == o)

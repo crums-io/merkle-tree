@@ -174,11 +174,59 @@ public abstract class Tree {
   
   
   /**
+   * Returns the leaf width in bytes if <em>fixed</em>; -1, otherwise (variable).
+   */
+  public abstract int leafWidth();
+  
+  
+  /**
+   * Determines whether the width of the leaves is fixed.
+   * 
+   * @return <tt>true</tt> iff the leaf width is not variable
+   */
+  public final boolean isLeafWidthFixed() {
+    return leafWidth() > 0;
+  }
+  
+  /**
+   * Determines whether the width of the leaves is the same as the byte
+   * width of the hashing algorithm.
+   */
+  public final boolean isOmniWidth() {
+    return hashAlgoWidth() == leafWidth();
+  }
+  
+  
+  /**
+   * Returns the byte width of the hashing algorithm by observing the width
+   * of the root of the tree.
+   */
+  public final int hashAlgoWidth() {
+    return root().data().length;
+  }
+  
+  
+  /**
    * For debug use.
    */
   @Override
   public String toString() {
-    return getClass().getSimpleName() + "[" + algo + ":" + idx.count() + "]";
+    StringBuilder string = new StringBuilder(32);
+    
+    string.append(getClass().getSimpleName()).append('[');
+    
+    return appendToStringDetail(string).append(']').toString();
+  }
+  
+  protected StringBuilder appendToStringDetail(StringBuilder string) {
+    string.append(algo).append(':').append(idx.count());
+    if (isOmniWidth())
+      string.append(":omni");
+    else if (isLeafWidthFixed())
+      string.append(":fixed:").append(leafWidth());
+    else
+      string.append(":var");
+    return string;
   }
   
   

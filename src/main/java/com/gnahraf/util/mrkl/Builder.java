@@ -39,7 +39,7 @@ public class Builder {
   
 
   /**
-   * Creates a new instance with a dedicated <tt>MessageDigest</tt> using the
+   * Creates a new copy-on-write (copy-on-add) instance with a dedicated <tt>MessageDigest</tt> using the
    * given hashing algorithm.
    * 
    * @param algo the digest algorithm (e.g. MD5, SHA-1, SHA-256)
@@ -56,6 +56,9 @@ public class Builder {
    * given hashing algorithm.
    * 
    * @param algo the digest algorithm (e.g. MD5, SHA-1, SHA-256)
+   * @param copyOnWrite if <tt>true</tt>, then every {@linkplain #add(byte[])} is argument
+   *                    is copied (the argument's value is considered volatile). When you know you won't
+   *                    be modifying the input arguments set this to <tt>false</tt>
    * 
    * @throws IllegalArgumentException in lieu of checked <tt>NoSuchAlgorithmException</tt>
    */
@@ -65,6 +68,8 @@ public class Builder {
     } catch (NoSuchAlgorithmException nsax) {
       throw new IllegalArgumentException("algo: " + algo, nsax);
     }
+    if (digest.getDigestLength() == 0)
+      throw new IllegalArgumentException(algo + " implementation does not advertise hash length");
     this.copyOnWrite = copyOnWrite;
     data.add(new ArrayList<>());
   }
@@ -95,6 +100,11 @@ public class Builder {
   public synchronized byte[] hash(byte[] data) {
     digest.reset();
     return digest.digest(data);
+  }
+  
+  
+  public final int hashWidth() {
+    return digest.getDigestLength();
   }
   
   
@@ -138,6 +148,19 @@ public class Builder {
    * @see #clear()
    */
   public synchronized Tree build() {
+    
+    completeTree();
+    
+    Tree tree = packageTree();
+    
+    clear();
+    
+    return tree;
+  }
+  
+  
+  protected void completeTree() {
+    
     if (count() < 2)
       throw new IllegalStateException("nothing to build; count is " + count());
     
@@ -147,7 +170,7 @@ public class Builder {
     // sanity check
     assert idx.height() == maxLevel() + 1 || idx.height() == maxLevel();
     
-    for (int level = 1; level <= idx.height(); ++ level) {
+    for (int level = 1; level <= idx.height(); ++level) {
       
       if (idx.hasCarry(level)) {
         
@@ -171,6 +194,11 @@ public class Builder {
       
       assert levelSize(level) == idx.count(level);
     }
+  }
+  
+  
+  
+  protected Tree packageTree() {
     
     Tree tree;
     
@@ -183,7 +211,8 @@ public class Builder {
                   count(),
                   digest.getDigestLength(),
                   leafWidth);
-    
+
+    TreeIndex<?> idx = TreeIndex.newGeneric(count());
     
     if (fixedByteSize <= 0) {
       
@@ -215,10 +244,11 @@ public class Builder {
       tree = new FixedWidthTree(count(), getHashAlgo(), b, pWidth, leafWidth);
     }
     
-    clear();
-    
     return tree;
   }
+  
+  
+  
   
   
   /**

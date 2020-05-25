@@ -66,6 +66,21 @@ public class FreeLeafTree extends Tree {
     for (int index = data.length; index-- > 0; )
       copy[index] = copy(data[index]);
     return copy;
+  }
+
+  /**
+   * <p>Returns -1 signifying <em>variable</em> width. Note, it may coincidentally happen that all the
+   * leaves are fixed width. If you've specifically arranged for this, but are for some reason using
+   * this class instead of {@linkplain FixedWidthTree}, then override this method to return its fixed value.
+   * </p>
+   * 
+   * {@inheritDoc}
+   * 
+   * @return -1
+   */
+  @Override
+  public int leafWidth() {
+    return -1;
   }  
 
 }
