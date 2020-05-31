@@ -12,12 +12,12 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 
 import io.crums.util.mrkl.Builder;
-import io.crums.util.mrkl.FixedWidthTree;
+import io.crums.util.mrkl.FixedLeafTree;
 
 /**
  * 
  */
-public class FixedWidthTreeTest extends TreeTest {
+public class FixedLeafTreeTest extends TreeTest {
   
   /**
    * Covers a bug fix.
@@ -29,10 +29,21 @@ public class FixedWidthTreeTest extends TreeTest {
     byte[] right = { 1, 2, 3, 4 };
     builder.add(left);
     builder.add(right);
-    FixedWidthTree tree = (FixedWidthTree) builder.build();
+    FixedLeafTree tree = (FixedLeafTree) builder.build();
     ByteBuffer leavesBlock = tree.leavesBlock();
     assertEquals(left.length * 2, leavesBlock.remaining());
     assertEquals(leavesBlock.remaining(), leavesBlock.capacity());
   }
+
+  /* (non-Javadoc)
+   * @see io.crums.util.mrkl.TreeTest#newBuilder()
+   */
+  @Override
+  protected FixedLeafBuilder newBuilder() {
+    return new FixedLeafBuilder(ALGO, 4);
+  }
+  
+  
+  
 
 }

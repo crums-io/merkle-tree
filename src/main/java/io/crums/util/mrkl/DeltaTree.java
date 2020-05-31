@@ -67,7 +67,7 @@ public class DeltaTree extends Tree {
     
     int newNodes = deltaNodes.length / nodeWidth;
     
-    if (newNodes == 0)
+    if (newNodes <= 0)
       throw new IllegalArgumentException("empty deltaNodes array");
     
     if (newNodes * nodeWidth != deltaNodes.length)

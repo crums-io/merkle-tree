@@ -9,7 +9,11 @@ import java.util.RandomAccess;
 
 /**
  * Read-only <tt>List<byte[]></tt> implementation using node data at a specific
- * level in a {@linkplain Tree}.
+ * level in a {@linkplain Tree}. The use case here is to build a bigger tree,
+ * or perhaps just to rebuild its carries (nodes added to stitch up a tree's frontier
+ * nodes and buiid a root). Since in that case the <em>carry</em> nodes in the base
+ * tree are never consulted, the default behavior of this class is to drop the
+ * carry node (which is necessarily at the highest index) from the list.
  */
 class LevelByteList extends AbstractList<byte[]> implements RandomAccess {
   
@@ -18,18 +22,16 @@ class LevelByteList extends AbstractList<byte[]> implements RandomAccess {
   private final int size;
 
   /**
-   * 
+   * Creates an instance that does not include the carry node if present
+   * at the specified <tt>level</tt>.
    */
   public LevelByteList(Tree tree, int level) throws IndexOutOfBoundsException {
     this(tree, level, false);
   }
 
   /**
-   * Creates a new instance from node data in the Merkle tree at the 
-   * @param tree
-   * @param level
-   * @param includeCarry
-   * @throws IndexOutOfBoundsException
+   * Creates a new instance from node data in the Merkle tree at the specified
+   * <tt>level</tt>.
    */
   public LevelByteList(Tree tree, int level, boolean includeCarry) throws IndexOutOfBoundsException {
     this.tree = Objects.requireNonNull(tree, "tree");

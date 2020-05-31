@@ -15,7 +15,7 @@ import io.crums.util.mrkl.index.TreeIndex;
  * memory layout for the tree.
  * 
  * @see Builder
- * @see FixedWidthTree
+ * @see FixedLeafTree
  * @see FreeLeafTree
  */
 public abstract class Tree {
@@ -199,10 +199,11 @@ public abstract class Tree {
   
   /**
    * Returns the byte width of the hashing algorithm by observing the width
-   * of the root of the tree.
+   * of the node at coordinates (1, 0), which is the first internal node constructed
+   * in a tree.
    */
   public final int hashAlgoWidth() {
-    return root().data().length;
+    return idx().getNode(1, 0).data().length;
   }
   
   

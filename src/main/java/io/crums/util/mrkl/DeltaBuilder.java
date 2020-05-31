@@ -17,7 +17,7 @@ import io.crums.util.ListExtension;
  * 
  * @see DeltaTree
  */
-public class DeltaBuilder extends Builder {
+public class DeltaBuilder extends FixedLeafBuilder {
   
   private final Tree base;
   private final int nodeWidth;
@@ -46,7 +46,7 @@ public class DeltaBuilder extends Builder {
    * 
    */
   public DeltaBuilder(Tree tree, boolean copyOnWrite) {
-    super(tree.getHashAlgo(), copyOnWrite);
+    super(tree.getHashAlgo(), tree.leafWidth(), copyOnWrite);
     this.base = tree;
     this.nodeWidth = base.leafWidth();
     if (!base.isOmniWidth())
@@ -63,17 +63,24 @@ public class DeltaBuilder extends Builder {
     assert data.get(data.size() - 1).size() == 1;
     
   }
-
+  
+  
+  
   @Override
-  protected void completeTree() {
-    if (itemsAdded() == 0)
-      throw new IllegalStateException("nothing added");
-    
-    super.completeTree();
+  public Tree build() {
+    synchronized (lock) {
+      if (itemsAdded() == 0 && base.idx().totalCarries() == 0)
+        return base;
+      return super.build();
+    }
   }
+  
+  
+
+  
 
   @Override
-  protected Tree packageTree() {
+  protected DeltaTree packageTree() {
     
     // we're building an AppendedTree instance.. gather the appended node data into one array
     // the data is to be arranged in serial order (breadth first)
@@ -111,17 +118,20 @@ public class DeltaBuilder extends Builder {
 
   
   @Override
-  public synchronized void clear() {
-    for (int level = data.size(); level-- > 0; ) {
-      List<byte[]> levelData = data.get(level);
-      if (levelData instanceof ListExtension)
-        ((ListExtension<byte[]>) levelData).second().clear();
-      else {
-        levelData.clear();
-        data.remove(level);
+  public void clear() {
+    synchronized (lock) {
+      
+      for (int level = data.size(); level-- > 0; ) {
+        List<byte[]> levelData = data.get(level);
+        if (levelData instanceof ListExtension)
+          ((ListExtension<byte[]>) levelData).second().clear();
+        else {
+          levelData.clear();
+          data.remove(level);
+        }
       }
+      itemsAdded = 0;
     }
-    itemsAdded = 0;
   }
   
   /**
@@ -131,11 +141,12 @@ public class DeltaBuilder extends Builder {
    * {@inheritDoc}
    */
   @Override
-  public synchronized int add(byte[] item, int off, int len) throws IndexOutOfBoundsException {
-    if (len != nodeWidth)
-      throw new IllegalArgumentException("item length " + len + "; expected " + nodeWidth);
-    ++itemsAdded;
-    return super.add(item, off, len);
+  public int add(byte[] item, int off, int len) throws IndexOutOfBoundsException {
+    synchronized (lock) {
+      int indexOfItem = super.add(item, off, len);
+      ++itemsAdded;
+      return indexOfItem;
+    }
   }
   
   

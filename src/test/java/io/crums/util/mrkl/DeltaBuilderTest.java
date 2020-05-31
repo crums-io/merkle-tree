@@ -25,10 +25,10 @@ public class DeltaBuilderTest extends TreeTest {
     Tree base = randomOmniTree(2);
     DeltaBuilder builder = new DeltaBuilder(base);
     assertEquals(2, builder.count());
-    try {
-      builder.build();
-      fail();
-    } catch (IllegalStateException expected) {  }
+    Tree rebuilt = builder.build();
+    assertArrayEquals(base.root().data(), rebuilt.root().data());
+    assertArrayEquals(base.idx().getNode(0, 0).data(), rebuilt.idx().getNode(0, 0).data());
+    assertArrayEquals(base.idx().getNode(0, 1).data(), rebuilt.idx().getNode(0, 1).data());
   }
   
   
@@ -77,6 +77,13 @@ public class DeltaBuilderTest extends TreeTest {
 
   
   
+  @Override
+  protected FixedLeafBuilder newBuilder() {
+    
+    return new FixedLeafBuilder(ALGO);
+  }
+
+
   @Test
   public void test02Base2Add2() {
     int baseCount = 2;
@@ -87,7 +94,7 @@ public class DeltaBuilderTest extends TreeTest {
   @Test
   public void test03Base2_33Add1_33() {
     for (int baseCount = 2; baseCount <= 33; ++baseCount)
-      for (int addCount = 1; addCount <= 33; ++addCount)
+      for (int addCount = 0; addCount <= 33; ++addCount)
         testImpl(baseCount, addCount);
   }
 

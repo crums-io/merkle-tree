@@ -31,7 +31,8 @@ import java.util.Objects;
  * <li><b>Carry.</b> The parent node formed from 2 child nodes at different levels,
  * or a parent node formed if one or more of its descendants have been so formed. 
  * There can only be one such node at any level, and then it may only be the node
- * at the last index at that level.</li>
+ * at the last index at that level. Another way to think of a carry is an existing node whose value
+ * would necessarily change if another (single) leaf node had been added.</li>
  * 
  * <li><b>Joins Carry.</b> A child node of a <em>carry</em>. The child node itself may or may not
  * be a carry.
@@ -175,6 +176,18 @@ public class TreeIndex<N extends AbstractNode> {
    */
   public final boolean hasCarry(int level) throws IndexOutOfBoundsException {
     return count(level) > countSansCarry(level);
+  }
+  
+  
+  /**
+   * Determines whether node at the given coordinates is a carry.
+   * 
+   * @param level
+   * @param index
+   * @return
+   */
+  public final boolean isCarry(int level, int index) {
+    return index == count(level) - 1 && hasCarry(level);
   }
   
   

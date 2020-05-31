@@ -10,7 +10,7 @@ import java.util.Objects;
 
 /**
  * A <tt>Tree</tt> allowing variable length leaves. Note although less efficient,
- * this layout allows larger in-memory fixed-width trees than {@linkplain FixedWidthTree}.
+ * this layout allows larger in-memory fixed-width trees than {@linkplain FixedLeafTree}.
  */
 public class FreeLeafTree extends Tree {
 
@@ -71,7 +71,7 @@ public class FreeLeafTree extends Tree {
   /**
    * <p>Returns -1 signifying <em>variable</em> width. Note, it may coincidentally happen that all the
    * leaves are fixed width. If you've specifically arranged for this, but are for some reason using
-   * this class instead of {@linkplain FixedWidthTree}, then override this method to return its fixed value.
+   * this class instead of {@linkplain FixedLeafTree}, then override this method to return its fixed value.
    * </p>
    * 
    * {@inheritDoc}

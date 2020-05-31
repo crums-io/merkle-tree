@@ -18,14 +18,19 @@ import io.crums.util.mrkl.index.TreeIndex;
 /**
  * Collects items (byte arrays) and builds a Merkle tree. If all the items (the leaves of the tree)
  * {@linkplain #add(byte[]) added} are fixed-width (and the tree's data fits under 1GB memory), then the instance
- * builds a {@linkplain FixedWidthTree}; otherwise, it builds a {@linkplain FreeLeafTree} instance.
+ * builds a {@linkplain FixedLeafTree}; otherwise, it builds a {@linkplain FreeLeafTree} instance.
  */
 public class Builder {
   
   /**
+   * Synchronization lock.
+   */
+  protected final Object lock;
+  
+  /**
    * Breadth-first view of the nodes' data.
    */
-  protected final List<List<byte[]>> data = new ArrayList<>();
+  protected final List<List<byte[]>> data;
   protected final MessageDigest digest;
   protected final boolean copyOnWrite;
   
@@ -63,6 +68,8 @@ public class Builder {
    * @throws IllegalArgumentException in lieu of checked <tt>NoSuchAlgorithmException</tt>
    */
   public Builder(String algo, boolean copyOnWrite) throws IllegalArgumentException {
+    this.lock = new Object();
+    this.data = new ArrayList<>();
     try {
       digest = MessageDigest.getInstance(algo);
     } catch (NoSuchAlgorithmException nsax) {
@@ -72,6 +79,19 @@ public class Builder {
       throw new IllegalArgumentException(algo + " implementation does not advertise hash length");
     this.copyOnWrite = copyOnWrite;
     data.add(new ArrayList<>());
+  }
+  
+  
+  /**
+   * Copy constructor. The new instance shares the same fields as this instance.
+   * 
+   * @param copy
+   */
+  protected Builder(Builder copy) {
+    this.lock = copy.lock;
+    this.digest = copy.digest;
+    this.copyOnWrite = copy.copyOnWrite;
+    this.data = copy.data;
   }
   
   
@@ -97,9 +117,11 @@ public class Builder {
    * @param data to be hashed
    * @return a new array containing the hash
    */
-  public synchronized byte[] hash(byte[] data) {
-    digest.reset();
-    return digest.digest(data);
+  public byte[] hash(byte[] data) {
+    synchronized (lock) {
+      digest.reset();
+      return digest.digest(data);
+    }
   }
   
   
@@ -117,20 +139,22 @@ public class Builder {
    * 
    * @return      the item's leaf node index in the to-be built tree
    */
-  public synchronized int add(byte[] item, int off, int len) throws IndexOutOfBoundsException {
+  public int add(byte[] item, int off, int len) throws IndexOutOfBoundsException {
     
-    level(0).add(copyImpl(item, off, len));
-    
-    if (len != leafWidth && leafWidth != LEAFWIDTH_VARIABLE)
-      leafWidth = (leafWidth == LEAFWIDTH_UNSET) ? len : LEAFWIDTH_VARIABLE;
-    
-    if (levelPaired(0)) {
-      nextLevel(0).add(Tree.hashLeaves(lastLeft(0), lastRight(0), digest));
+    synchronized (lock) {
+      level(0).add(copyImpl(item, off, len));
       
-      for (int index = 1; levelPaired(index); ++index)
-        nextLevel(index).add(Tree.hashInternals(lastLeft(index), lastRight(index), digest));
+      if (len != leafWidth && leafWidth != LEAFWIDTH_VARIABLE)
+        leafWidth = (leafWidth == LEAFWIDTH_UNSET) ? len : LEAFWIDTH_VARIABLE;
+      
+      if (levelPaired(0)) {
+        nextLevel(0).add(Tree.hashLeaves(lastLeft(0), lastRight(0), digest));
+        
+        for (int index = 1; levelPaired(index); ++index)
+          nextLevel(index).add(Tree.hashInternals(lastLeft(index), lastRight(index), digest));
+      }
+      return count() - 1;
     }
-    return count() - 1;
   }
   
   
@@ -147,15 +171,24 @@ public class Builder {
    * 
    * @see #clear()
    */
-  public synchronized Tree build() {
+  public Tree build() {
     
-    completeTree();
-    
-    Tree tree = packageTree();
-    
-    clear();
-    
-    return tree;
+    synchronized (lock) {
+      
+      Tree tree;
+      
+      if (leafWidth > 0)
+        tree = new FixedLeafBuilder(this).build();
+      
+      else {
+        completeTree();
+        tree = packageTree();
+      }
+
+      clear();
+      
+      return tree;
+    }
   }
   
   
@@ -200,72 +233,88 @@ public class Builder {
   
   protected Tree packageTree() {
     
-    Tree tree;
-    
+//    Tree tree;
+//    
     assert leafWidth != LEAFWIDTH_UNSET;
     
-    int fixedByteSize =
-        leafWidth == LEAFWIDTH_VARIABLE ?
-            -1 :
-              FixedWidthTree.treeDataLength(
-                  count(),
-                  digest.getDigestLength(),
-                  leafWidth);
+//    
+//    int fixedByteSize =
+//        leafWidth == LEAFWIDTH_VARIABLE ?
+//            -1 :
+//              FixedLeafTree.treeDataLength(
+//                  count(),
+//                  digest.getDigestLength(),
+//                  leafWidth);
 
     TreeIndex<?> idx = TreeIndex.newGeneric(count());
     
-    if (fixedByteSize <= 0) {
-      
-      byte[][] bb = new byte[idx.totalCount()][];
-      
-      for (int serialIndex = 0, level = idx.height(); level >= 0; --level)
-        for (int index = 0; index < levelSize(level); ++index, ++serialIndex)
-          bb[serialIndex] = level(level).get(index); 
-      
-      
-      tree = new FreeLeafTree(bb, count(), getHashAlgo(), false);
-      
-    } else {
-      
-      byte[] b = new byte[fixedByteSize];
-      
-      int pos = 0;
-      int pWidth = digest.getDigestLength();
-      
-      for (int level = idx.height(); level > 0; --level) 
-        for (int index = 0; index < levelSize(level); ++index, pos += pWidth)
-          transfer(level(level).get(index), b, pos);
-      
-      for (int index = 0; index < count(); ++index, pos += leafWidth)
-        transfer(level(0).get(index), b, pos);
-      
-      assert pos == b.length;
-      
-      tree = new FixedWidthTree(count(), getHashAlgo(), b, pWidth, leafWidth);
-    }
+    byte[][] bb = new byte[idx.totalCount()][];
     
-    return tree;
+    for (int serialIndex = 0, level = idx.height(); level >= 0; --level)
+      for (int index = 0; index < levelSize(level); ++index, ++serialIndex)
+        bb[serialIndex] = level(level).get(index); 
+    
+    
+    return new FreeLeafTree(bb, count(), getHashAlgo(), false);
+    
+//    if (fixedByteSize <= 0) {
+//      
+//      byte[][] bb = new byte[idx.totalCount()][];
+//      
+//      for (int serialIndex = 0, level = idx.height(); level >= 0; --level)
+//        for (int index = 0; index < levelSize(level); ++index, ++serialIndex)
+//          bb[serialIndex] = level(level).get(index); 
+//      
+//      
+//      tree = new FreeLeafTree(bb, count(), getHashAlgo(), false);
+//      
+//    } else {
+//      
+//      byte[] b = new byte[fixedByteSize];
+//      
+//      int pos = 0;
+//      int pWidth = digest.getDigestLength();
+//      
+//      for (int level = idx.height(); level > 0; --level) 
+//        for (int index = 0; index < levelSize(level); ++index, pos += pWidth)
+//          transfer(level(level).get(index), b, pos);
+//      
+//      for (int index = 0; index < count(); ++index, pos += leafWidth)
+//        transfer(level(0).get(index), b, pos);
+//      
+//      assert pos == b.length;
+//      
+//      tree = new FixedLeafTree(count(), getHashAlgo(), b, pWidth, leafWidth);
+//    }
+//    
+//    return tree;
   }
   
   
-  
+  public int leafWidth() {
+    return leafWidth;
+  }
   
   
   /**
    * Clears the state of the instance, as if new.
    */
-  public synchronized void clear() {
-    // help out the gc and clear references
-    data.forEach(level -> level.clear());
-    data.clear();
-    data.add(new ArrayList<>());
-    leafWidth = LEAFWIDTH_UNSET;
+  public void clear() {
+    synchronized (lock) {
+      // help out the gc and clear references
+      data.forEach(level -> level.clear());
+      data.clear();
+      data.add(new ArrayList<>());
+      leafWidth = LEAFWIDTH_UNSET;
+    }
   }
   
   
   
-  public final synchronized int count() {
-    return level(0).size();
+  public final int count() {
+    synchronized (lock) {
+      return level(0).size();
+    }
   }
   
   
@@ -279,7 +328,7 @@ public class Builder {
   
   
   
-  private int levelSize(int level) {
+  protected final int levelSize(int level) {
     return data.get(level).size();
   }
   
@@ -312,14 +361,18 @@ public class Builder {
   private List<byte[]> ensureLevel(int index) {
     List<byte[]> level;
     if (data.size() == index) {
-      level = new ArrayList<>();
+      level = newByteArrayList(index);
       data.add(level);
     } else
       level = data.get(index);
     return level;
   }
   
-  private List<byte[]> level(int index) {
+  protected List<byte[]> newByteArrayList(int level) {
+    return new ArrayList<>();
+  }
+  
+  protected final List<byte[]> level(int index) {
     return data.get(index);
   }
   
