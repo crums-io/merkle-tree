@@ -233,18 +233,8 @@ public class Builder {
   
   protected Tree packageTree() {
     
-//    Tree tree;
-//    
     assert leafWidth != LEAFWIDTH_UNSET;
-    
-//    
-//    int fixedByteSize =
-//        leafWidth == LEAFWIDTH_VARIABLE ?
-//            -1 :
-//              FixedLeafTree.treeDataLength(
-//                  count(),
-//                  digest.getDigestLength(),
-//                  leafWidth);
+
 
     TreeIndex<?> idx = TreeIndex.newGeneric(count());
     
@@ -256,38 +246,6 @@ public class Builder {
     
     
     return new FreeLeafTree(bb, count(), getHashAlgo(), false);
-    
-//    if (fixedByteSize <= 0) {
-//      
-//      byte[][] bb = new byte[idx.totalCount()][];
-//      
-//      for (int serialIndex = 0, level = idx.height(); level >= 0; --level)
-//        for (int index = 0; index < levelSize(level); ++index, ++serialIndex)
-//          bb[serialIndex] = level(level).get(index); 
-//      
-//      
-//      tree = new FreeLeafTree(bb, count(), getHashAlgo(), false);
-//      
-//    } else {
-//      
-//      byte[] b = new byte[fixedByteSize];
-//      
-//      int pos = 0;
-//      int pWidth = digest.getDigestLength();
-//      
-//      for (int level = idx.height(); level > 0; --level) 
-//        for (int index = 0; index < levelSize(level); ++index, pos += pWidth)
-//          transfer(level(level).get(index), b, pos);
-//      
-//      for (int index = 0; index < count(); ++index, pos += leafWidth)
-//        transfer(level(0).get(index), b, pos);
-//      
-//      assert pos == b.length;
-//      
-//      tree = new FixedLeafTree(count(), getHashAlgo(), b, pWidth, leafWidth);
-//    }
-//    
-//    return tree;
   }
   
   
@@ -310,11 +268,28 @@ public class Builder {
   }
   
   
-  
+  /**
+   * Returns the number of items added.
+   */
   public final int count() {
     synchronized (lock) {
       return level(0).size();
     }
+  }
+  
+  
+  
+  /**
+   * Returns (a copy of) of the item at the given <tt>index</tt>.
+   * 
+   * @param index $lt; {@linkplain #count()}
+   */
+  public byte[] item(int index) throws IndexOutOfBoundsException {
+    byte[] item = data.get(0).get(index);
+    byte[] copy = new byte[item.length];
+    for (int i = item.length; i-- > 0; )
+      copy[i] = item[i];
+    return copy;
   }
   
   
