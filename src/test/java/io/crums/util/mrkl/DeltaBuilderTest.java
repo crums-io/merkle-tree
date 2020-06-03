@@ -30,6 +30,19 @@ public class DeltaBuilderTest extends TreeTest {
     assertArrayEquals(base.idx().getNode(0, 0).data(), rebuilt.idx().getNode(0, 0).data());
     assertArrayEquals(base.idx().getNode(0, 1).data(), rebuilt.idx().getNode(0, 1).data());
   }
+
+  
+  @Test
+  public void test01NothingAdded() {
+    Tree base = randomOmniTree(3);
+    DeltaBuilder builder = new DeltaBuilder(base);
+    assertEquals(3, builder.count());
+    Tree rebuilt = builder.build();
+    assertArrayEquals(base.root().data(), rebuilt.root().data());
+    for (int index = 0; index < base.idx().count(); ++index)
+      assertArrayEquals(base.idx().getNode(0, index).data(), rebuilt.idx().getNode(0, index).data());
+    assertHashRecurse(rebuilt.root(), newDigest());
+  }
   
   
   @Test
