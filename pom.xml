@@ -1,71 +1,118 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>io.crums</groupId>
-  <artifactId>merkle-tree</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  
-  
-  
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>io.crums</groupId>
+	<artifactId>merkle-tree</artifactId>
+	<version>0.0.2-SNAPSHOT</version>
 
-  <name>Merkle Tree</name>
-  <url>https://github.com/gnahraf/merkle-tree</url>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.10</maven.compiler.source>
-    <maven.compiler.target>1.10</maven.compiler.target>
-  </properties>
-  
-  
-  <build>
-    <plugins>
-    
-    
+
+
+	<name>Merkle Tree</name>
+	<url>https://github.com/gnahraf/merkle-tree</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.11</maven.compiler.source>
+		<maven.compiler.target>1.11</maven.compiler.target>
+	</properties>
+
+
+	<build>
+		<plugins>
+
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <generateBackupPoms>false</generateBackupPoms>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-		<artifactId>maven-source-plugin</artifactId>
-		<version>3.2.1</version>
-		<executions>
-	      <execution>
-	        <id>attach-sources</id>
-	        <goals>
-	          <goal>jar</goal>
-	        </goals>
-	      </execution>
-		</executions>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.0.0-M3</version>
+        <executions>
+          <execution>
+            <id>enforce-maven</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[3.0,)</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+        <configuration>
+          <release>11</release>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.22.0</version>
+        <configuration>
+          <argLine>
+            --illegal-access=permit
+          </argLine>
+        </configuration>
       </plugin>
       
-  <!-- 
       <plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-javadoc-plugin</artifactId>
-		<version>3.1.1</version>
-	    <executions>
-	      <execution>
-	        <id>attach-javadocs</id>
-	        <goals>
-	          <goal>jar</goal>
-	        </goals>
-	      </execution>
-	    </executions>
-	  </plugin>
-   -->
-      
-      
-   </plugins>
- </build>
-  
-  
-  
-  <dependencies>
-    
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
-    </dependency>
-    
-  </dependencies>
-  
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.22.0</version>
+        <configuration>
+          <argLine>
+            --illegal-access=permit
+          </argLine>
+        </configuration>
+      </plugin>
+
+
+		</plugins>
+	</build>
+
+
+
+	<dependencies>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
 </project>
