@@ -208,6 +208,14 @@ public abstract class Tree {
   
   
   /**
+   * Returns a cryptographic path to the root of the Merkle tree.
+   */
+  public final Proof proof(int leafIndex) {
+    return new Proof(this, leafIndex);
+  }
+  
+  
+  /**
    * For debug use.
    */
   @Override

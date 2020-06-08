@@ -5,7 +5,6 @@ package io.crums.util.mrkl;
 
 
 import static io.crums.util.mem.Bytes.copy;
-import static io.crums.util.mem.Bytes.transfer;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
