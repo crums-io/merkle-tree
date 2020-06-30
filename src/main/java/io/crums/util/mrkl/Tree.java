@@ -111,8 +111,21 @@ public abstract class Tree {
   }
   
   
+  /**
+   * Returns the root node of the tree.
+   * 
+   * @see #hash()
+   */
   public final Node root() {
     return idx.getNode(0);
+  }
+  
+  
+  /**
+   * Returns the hash of the root of the tree.
+   */
+  public final byte[] hash() {
+    return data(idx.height(), 0);
   }
   
   
