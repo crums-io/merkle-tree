@@ -83,50 +83,58 @@ public class Proof {
       throw new IllegalArgumentException(
           "algo mismatch: expected '" + algo + "'; digest's '" + digest.getAlgorithm() + "'");
     
-    byte[] hash;
-    TreeIndex<?> tree = TreeIndex.newGeneric(leafCount);
-    AbstractNode node = tree.getSibling(0, leafIndex);
-    
-    if (node.isLeaf()) {
-      byte[] left, right;
-      if (node.isLeft()) {
-        left = hashChain.get(1);
-        right = hashChain.get(0);
-      } else {
-        left = hashChain.get(0);
-        right = hashChain.get(1);
-      }
-      hash = Tree.hashLeaves(left, right, digest);
+    try {
       
-    } else {
-      assert node.isLeft();
-      hash = Tree.hashUncommon(hashChain.get(1), hashChain.get(0), digest);
-    }
-    
-    node = tree.getParent(node);
-    
-    for (int cindex = 2; node.level() != tree.height(); node = tree.getParent(node), ++cindex) {
-      // invariant: *hash belongs to *node
-      byte[] left, right;
-      AbstractNode rightNode;
-      if (node.isLeft()) {
-        left = hash;
-        right = hashChain.get(cindex);
-        rightNode = tree.getSibling(node);
-        assert !node.isLeaf();
+      TreeIndex<?> tree = TreeIndex.newGeneric(leafCount);
+      AbstractNode node = tree.getSibling(0, leafIndex);
+
+      byte[] hash;
+      
+      if (node.isLeaf()) {
+        byte[] left, right;
+        if (node.isLeft()) {
+          left = hashChain.get(1);
+          right = hashChain.get(0);
+        } else {
+          left = hashChain.get(0);
+          right = hashChain.get(1);
+        }
+        hash = Tree.hashLeaves(left, right, digest);
+        
       } else {
-        // node is right
-        left = hashChain.get(cindex);
-        right = hash;
-        rightNode = node;
+        assert node.isLeft();
+        hash = Tree.hashUncommon(hashChain.get(1), hashChain.get(0), digest);
       }
-      if (rightNode.isLeaf())
-        hash = Tree.hashUncommon(left, right, digest);
-      else
-        hash = Tree.hashInternals(left, right, digest);
-    }
+      
+      node = tree.getParent(node);
+      
+      int cindex = 2;
+      for (; node.level() != tree.height(); node = tree.getParent(node), ++cindex) {
+        // invariant: *hash belongs to *node
+        byte[] left, right;
+        AbstractNode rightNode;
+        if (node.isLeft()) {
+          left = hash;
+          right = hashChain.get(cindex);
+          rightNode = tree.getSibling(node);
+          assert !node.isLeaf();
+        } else {
+          // node is right
+          left = hashChain.get(cindex);
+          right = hash;
+          rightNode = node;
+        }
+        if (rightNode.isLeaf())
+          hash = Tree.hashUncommon(left, right, digest);
+        else
+          hash = Tree.hashInternals(left, right, digest);
+      }
     
-    return Arrays.equals(hash, rootHash());
+      return cindex == hashChain.size() - 1 && Arrays.equals(hash, rootHash());
+      
+    } catch (IndexOutOfBoundsException chainTooShort) {
+      return false;
+    }
   }
   
   
