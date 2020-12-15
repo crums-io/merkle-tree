@@ -144,7 +144,7 @@ public class Proof {
     TreeIndex<?> tree = TreeIndex.newGeneric(leafCount);
     AbstractNode node = tree.getNode(0, leafIndex);
 
-    int count = 1;  // count self
+    int count = 2;  // count self and root
     while (!tree.isRoot(node)) {
       ++count;
       // needs sibling hash to form:
