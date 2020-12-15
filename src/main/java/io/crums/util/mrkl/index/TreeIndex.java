@@ -192,6 +192,12 @@ public class TreeIndex<N extends AbstractNode> {
   
   
   
+  public final boolean isRoot(AbstractNode node) {
+    return node.level() == height();
+  }
+  
+  
+  
   public final N getNode(int level, int index) throws IndexOutOfBoundsException {
     Objects.checkIndex(index, count(level));
     return newNode(level, index, isRight(level, index));

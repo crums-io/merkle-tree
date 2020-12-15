@@ -138,6 +138,23 @@ public class Proof {
   }
   
   
+  
+  public static int chainLength(int leafIndex, int leafCount) {
+    
+    TreeIndex<?> tree = TreeIndex.newGeneric(leafCount);
+    AbstractNode node = tree.getNode(0, leafIndex);
+
+    int count = 1;  // count self
+    while (!tree.isRoot(node)) {
+      ++count;
+      // needs sibling hash to form:
+      node = tree.getParent(node);
+    }
+    
+    return count;
+  }
+  
+  
   @Override
   public final boolean equals(Object o) {
     if (o == this)
