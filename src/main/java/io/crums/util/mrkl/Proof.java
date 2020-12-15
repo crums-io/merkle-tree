@@ -139,7 +139,7 @@ public class Proof {
   
   
   
-  public static int chainLength(int leafIndex, int leafCount) {
+  public static int chainLength(int leafCount, int leafIndex) {
     
     TreeIndex<?> tree = TreeIndex.newGeneric(leafCount);
     AbstractNode node = tree.getNode(0, leafIndex);
