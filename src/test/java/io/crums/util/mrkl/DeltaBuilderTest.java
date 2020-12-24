@@ -10,10 +10,6 @@ import java.util.Random;
 
 import org.junit.Test;
 
-import io.crums.util.mrkl.Builder;
-import io.crums.util.mrkl.DeltaBuilder;
-import io.crums.util.mrkl.Tree;
-
 /**
  * 
  */

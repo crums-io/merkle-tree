@@ -3,7 +3,6 @@
  */
 package io.crums.util.mrkl;
 
-import io.crums.util.mrkl.Builder;
 
 /**
  * 

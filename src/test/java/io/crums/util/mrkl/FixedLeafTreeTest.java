@@ -11,9 +11,6 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
-import io.crums.util.mrkl.Builder;
-import io.crums.util.mrkl.FixedLeafTree;
-
 /**
  * 
  */

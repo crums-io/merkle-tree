@@ -11,10 +11,6 @@ import java.util.Random;
 
 import org.junit.Test;
 
-import io.crums.util.mrkl.Builder;
-import io.crums.util.mrkl.Node;
-import io.crums.util.mrkl.Tree;
-
 
 /**
  * Tests Builder along with Node and Tree classes, since the 3 are interdependent.

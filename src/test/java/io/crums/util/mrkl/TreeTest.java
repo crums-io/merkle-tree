@@ -13,10 +13,6 @@ import static org.junit.Assert.fail;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import io.crums.util.mrkl.Builder;
-import io.crums.util.mrkl.Node;
-import io.crums.util.mrkl.Tree;
-
 /**
  * (Factored out test code.)
  */

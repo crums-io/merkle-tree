@@ -11,11 +11,6 @@ import java.util.Random;
 
 import org.junit.Test;
 
-import io.crums.util.mrkl.Builder;
-import io.crums.util.mrkl.Node;
-import io.crums.util.mrkl.Proof;
-import io.crums.util.mrkl.Tree;
-
 /**
  * 
  */
