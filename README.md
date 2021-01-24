@@ -73,10 +73,11 @@ Then
 
 *Sketch of Proof.*
 
-1. Show **T(** *n* + 1 **)** - **T(** *n* **)** > 1 by inspecting their respective carries. Aside: there are homomorphisms (factor groups of *n*) involving equivalent arrangements of `1` bits that map to the same total number of carries. 
+1. Show that **T(** *n* + 1 **)** - **T(** *n* **)** > 0 by inspecting their respective carries. Aside: there are homomorphisms (factor groups of *n*) involving equivalent arrangements of `1` bits that map to the same total number of carries. 
+2. **T(** *n* **)** is odd because every parent node has an even number of children.
 3. Suppose the number of leaves is a power of two, i.e. *n* = 2<sup>*k*</sup>.
 Then the statement is true for **T(** *n* **)** = **T(** 2<sup>*k*</sup> **)** = 2<sup>*k*+1</sup> - 1 = 2*n* - 1 .
-4. Applying the pigeon hole principle, *n* ranging from 2<sup>*k*</sup> to 2<sup>*k*+1</sup> constrained by (1), conclude that **T(** *n* + 1 **)** - **T(** *n* **)** = 2 and since **T(** 2 **)** = 3, the proposition must be true. &#x220e;
+4. Applying the pigeon hole principle, *n* ranging from 2<sup>*k*</sup> to 2<sup>*k*+1</sup> constrained by (1) and (2), conclude that **T(** *n* + 1 **)** - **T(** *n* **)** = 2 and since **T(** 2 **)** = 3, the proposition must be true. &#x220e;
 
 
 
