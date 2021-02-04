@@ -79,18 +79,3 @@ Then the statement is true for **T(** *n* **)** = **T(** 2<sup>*k*</sup> **)** =
 4. Applying the pigeon hole principle, *n* ranging from 2<sup>*k*</sup> to 2<sup>*k*+1</sup> constrained by (1) and (2), conclude that **T(** *n* + 1 **)** - **T(** *n* **)** = 2 and since **T(** 2 **)** = 3, the proposition must be true. &#x220e;
 
 
-
-** Transition To ByteBuffers**
-
-The current design exposes data as byte arrays. This necessitates copying the data, since there are is no such thing as a read-only byte array in Java. I resisted using read-only ByteBuffers since a) the data chunks are typically only 32 bytes wide and b) you can't compose a read-only buffer from a bunch of other read-only buffers without copying (a design limitation, imo). Still, a buffer design would be better. Next version, hopefully.
-
-## Status
-
-
-Dec 25 2019
-
-> 0.0.1 Released. More serialization support in next version.
-
-Dec 21 2019
-
-> Coming soon :)
