@@ -1,0 +1,20 @@
+-encoding
+'UTF-8'
+-protected
+-sourcepath
+'/Users/babak/code/workspace/merkle-tree/src/main/java'
+-author
+-bottom
+'Copyright &#169; 2021. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'/Users/babak/code/workspace/merkle-tree/target/site/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'Merkle Tree 0.0.2-SNAPSHOT API'
+-use
+-version
+-windowtitle
+'Merkle Tree 0.0.2-SNAPSHOT API'

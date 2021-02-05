@@ -46,18 +46,22 @@ a `0` [byte] and an branch (internal) node's data with a `1` per the recommendat
 
 ## API
 
-There are only a few classes in this [API](https://github.com/crums-io/merkle-tree/tree/master/src/main/java/io/crums/util/mrkl).
+There are only a few classes in this [API](./api/index.html).
 
-1. [Builder](https://github.com/crums-io/merkle-tree/blob/master/src/main/java/io/crums/util/mrkl/Builder.java) - As the name suggests you build your tree with this, adding an item at a time. The item (which is a `byte[]` array) can be anything (even empty). In most applications, it'll be a hash or signature of something else and will be consequently fixed-width. The hashing algorithm for the internal nodes is configurable.
-2. [Tree](https://github.com/crums-io/merkle-tree/blob/master/src/main/java/io/crums/util/mrkl/Tree.java) - Encapsulates the tree and provides random access to its parts. Provides tree navigation thru the following class..
-3. [Node](https://github.com/crums-io/merkle-tree/blob/master/src/main/java/io/crums/util/mrkl/Node.java) - A node in the tree. Instances support navigating to parent, siblings, and children--as well as random access.
-4. [Proof](https://github.com/crums-io/merkle-tree/blob/master/src/main/java/io/crums/util/mrkl/Proof.java) - Encapsules a minimal object "proving" the membership of an item as a leaf in the tree.
-5. [TreeIndex](https://github.com/crums-io/merkle-tree/blob/master/src/main/java/io/crums/util/mrkl/index/TreeIndex.java) - This under the hood class exposes the structure of the tree (as discussed in the section above). You might find it useful. 
+1. [Builder](./api/io/crums/util/mrkl/Builder.html) - As the name suggests you build your tree with this, adding an item at a time. The item (which is a `byte[]` array) can be anything (even empty). In most applications, it'll be a hash or signature of something else and will be consequently fixed-width. The hashing algorithm for the internal nodes is configurable.
+2. [Tree](./api/io/crums/util/mrkl/Tree.html) - Encapsulates the tree and provides random access to its parts. Provides tree navigation thru the following class..
+3. [Node](./api/io/crums/util/mrkl/Node.html) - A node in the tree. Instances support navigating to parent, siblings, and children--as well as random access.
+4. [Proof](./api/io/crums/util/mrkl/Proof.html) - Encapsules a minimal object "proving" the membership of an item as a leaf in the tree.
+5. [TreeIndex](./api/io/crums/util/mrkl/index/TreeIndex.html) - This under the hood class exposes the structure of the tree (as discussed in the section above). You might find it useful. 
 
 With the exception of `Builder` all classes in this API are immutable and safe under concurrent access. (`Builder` too is thread safe, but unlike the other classes, it blocks.)
 
 There's a good amount javadoc comment in the source. (Useful in IDEs like Eclipse.)
 
+
+## Repo
+
+The repo for this project is located [here](https://github.com/crums-io/merkle-tree).
 
 
 
