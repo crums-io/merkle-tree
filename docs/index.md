@@ -1,3 +1,5 @@
+<img src="./logo.png"/>
+
 # merkle-tree
 
 A Merkle tree library written in Java.
