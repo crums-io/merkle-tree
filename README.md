@@ -58,7 +58,9 @@ With the exception of `Builder` all classes in this API are immutable and safe u
 
 There's a good amount javadoc comment in the source. (Useful in IDEs like Eclipse.)
 
+### Project Doc Site
 
+Project documentation (a version of this page plus javadoc API) is availabe [here](https://crums-io.github.io/merkle-tree/).
 
 
 ## Notes
@@ -80,12 +82,15 @@ Then the statement is true for **T(** *n* **)** = **T(** 2<sup>*k*</sup> **)** =
 
 
 
-** Transition To ByteBuffers**
+**Transition To ByteBuffers**
 
 The current design exposes data as byte arrays. This necessitates copying the data, since there are is no such thing as a read-only byte array in Java. I resisted using read-only ByteBuffers since a) the data chunks are typically only 32 bytes wide and b) you can't compose a read-only buffer from a bunch of other read-only buffers without copying (a design limitation, imo). Still, a buffer design would be better. Next version, hopefully.
 
 ## Status
 
+Feb 11 2021
+
+> 0.0.2 Released under LGPL.
 
 Dec 25 2019
 
