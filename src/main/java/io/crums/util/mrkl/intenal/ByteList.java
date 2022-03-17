@@ -1,10 +1,10 @@
 /*
  * Copyright 2019 Babak Farhang
  */
-package io.crums.util.mem;
+package io.crums.util.mrkl.intenal;
 
 
-import static io.crums.util.mem.Bytes.copy;
+import static io.crums.util.mrkl.intenal.Bytes.copy;
 
 import java.util.AbstractList;
 import java.util.ArrayList;

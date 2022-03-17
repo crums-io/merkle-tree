@@ -1,15 +1,14 @@
 /*
- * Copyright 2020 Babak Farhang
+ * Copyright 2020-2022 Babak Farhang
  */
 package io.crums.util.mrkl;
 
 
-
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * 

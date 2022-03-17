@@ -4,11 +4,11 @@
 package io.crums.util.mrkl;
 
 
-import static io.crums.util.mem.Bytes.transfer;
+import static io.crums.util.mrkl.intenal.Bytes.transfer;
 
 import java.util.List;
 
-import io.crums.util.ListExtension;
+import io.crums.util.mrkl.intenal.ListExtension;
 
 /**
  * Builds an incrementally bigger tree by only recalculating and maintaining deltas.

@@ -1,7 +1,7 @@
 /*
  * Copyright 2019 Babak Farhang
  */
-package io.crums.util.mem;
+package io.crums.util.mrkl.intenal;
 
 import java.util.Objects;
 

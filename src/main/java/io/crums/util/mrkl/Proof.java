@@ -10,9 +10,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import io.crums.util.mem.ByteList;
 import io.crums.util.mrkl.index.AbstractNode;
 import io.crums.util.mrkl.index.TreeIndex;
+import io.crums.util.mrkl.intenal.ByteList;
 
 /**
  * A cryptographic path from an item (expressed in bytes) to the

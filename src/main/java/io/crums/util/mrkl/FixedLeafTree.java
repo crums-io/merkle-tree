@@ -4,7 +4,7 @@
 package io.crums.util.mrkl;
 
 
-import static io.crums.util.mem.Bytes.copy;
+import static io.crums.util.mrkl.intenal.Bytes.copy;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
