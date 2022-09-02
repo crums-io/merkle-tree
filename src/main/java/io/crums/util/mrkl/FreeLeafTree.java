@@ -9,7 +9,7 @@ import static io.crums.util.mrkl.intenal.Bytes.copy;
 import java.util.Objects;
 
 /**
- * A <tt>Tree</tt> allowing variable length leaves. Note although less efficient,
+ * A {@code Tree} allowing variable length leaves. Note although less efficient,
  * this layout allows larger in-memory fixed-width trees than {@linkplain FixedLeafTree}.
  */
 public class FreeLeafTree extends Tree {
@@ -19,7 +19,7 @@ public class FreeLeafTree extends Tree {
   /**
    * Creates a new instance. Defensively copies.
    * 
-   * @param data   double array of length 2 x <tt>leaves</tt> - 1
+   * @param data   double array of length 2 x <code>leaves</code> - 1
    * @param leaves the number of leaf nodes
    * @param algo   the hashing algorithm
    */
@@ -30,11 +30,11 @@ public class FreeLeafTree extends Tree {
   /**
    * Creates a new instance.
    * 
-   * @param data   double array of length 2 x <tt>leaves</tt> - 1
+   * @param data   double array of length 2 x <code>leaves</code> - 1
    * @param leaves the number of leaf nodes
    * @param algo   the hashing algorithm
-   * @param copy   if <tt>true</tt> a defensive copy of <tt>data</tt> is used instead;
-   *               if <tt>false</tt>, then <tt>data</tt> should not be modified
+   * @param copy   if {@code true}, then a defensive copy of {@code data} is made;
+   *               if {@code false}, then {@code data} should not be modified
    */
   public FreeLeafTree(byte[][] data, int leaves, String algo, boolean copy) {
     super(leaves, algo);

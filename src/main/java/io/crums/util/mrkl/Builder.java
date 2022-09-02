@@ -43,12 +43,12 @@ public class Builder {
   
 
   /**
-   * Creates a new copy-on-write (copy-on-add) instance with a dedicated <tt>MessageDigest</tt> using the
+   * Creates a new copy-on-write (copy-on-add) instance with a dedicated <code>MessageDigest</code> using the
    * given hashing algorithm.
    * 
    * @param algo the digest algorithm (e.g. MD5, SHA-1, SHA-256)
    * 
-   * @throws IllegalArgumentException in lieu of checked <tt>NoSuchAlgorithmException</tt>
+   * @throws IllegalArgumentException in lieu of checked {@code NoSuchAlgorithmException}
    */
   public Builder(String algo) throws IllegalArgumentException {
     this(algo, true);
@@ -56,15 +56,15 @@ public class Builder {
   
 
   /**
-   * Creates a new instance with a dedicated <tt>MessageDigest</tt> using the
+   * Creates a new instance with a dedicated <code>MessageDigest</code> using the
    * given hashing algorithm.
    * 
    * @param algo the digest algorithm (e.g. MD5, SHA-1, SHA-256)
-   * @param copyOnWrite if <tt>true</tt>, then every {@linkplain #add(byte[])} is argument
+   * @param copyOnWrite if <code>true</code>, then every {@linkplain #add(byte[])} is argument
    *                    is copied (the argument's value is considered volatile). When you know you won't
-   *                    be modifying the input arguments set this to <tt>false</tt>
+   *                    be modifying the input arguments set this to <code>false</code>
    * 
-   * @throws IllegalArgumentException in lieu of checked <tt>NoSuchAlgorithmException</tt>
+   * @throws IllegalArgumentException in lieu of checked {@code NoSuchAlgorithmException}
    */
   public Builder(String algo, boolean copyOnWrite) throws IllegalArgumentException {
     this.lock = new Object();
@@ -91,6 +91,7 @@ public class Builder {
     this.digest = copy.digest;
     this.copyOnWrite = copy.copyOnWrite;
     this.data = copy.data;
+    this.leafWidth = copy.leafWidth;
   }
   
   
@@ -133,8 +134,8 @@ public class Builder {
    * Adds the specified item as the next leaf node are returns its leaf index.
    *  
    * @param item  the item's data (copied)
-   * @param off   starting offset into <tt>item</tt>
-   * @param len   the number of bytes following <tt>off</tt>
+   * @param off   starting offset into {@code item}
+   * @param len   the number of bytes following {@code off}
    * 
    * @return      the item's leaf node index in the to-be built tree
    */
@@ -248,6 +249,10 @@ public class Builder {
   }
   
   
+  /**
+   * Returns the leaf width if fixed; -1 if variable; -2 if not set.
+   * @return &ge; -2
+   */
   public int leafWidth() {
     return leafWidth;
   }
@@ -279,9 +284,9 @@ public class Builder {
   
   
   /**
-   * Returns (a copy of) of the item at the given <tt>index</tt>.
+   * Returns (a copy of) of the item at the given <code>index</code>.
    * 
-   * @param index $lt; {@linkplain #count()}
+   * @param index &lt; {@linkplain #count()}
    */
   public byte[] item(int index) throws IndexOutOfBoundsException {
     byte[] item = data.get(0).get(index);

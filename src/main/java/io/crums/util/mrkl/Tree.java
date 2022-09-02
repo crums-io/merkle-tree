@@ -129,6 +129,14 @@ public abstract class Tree {
   }
   
   
+  /**
+   * Returns the hashing algorithm that the tree's internal nodes use.
+   * The {@linkplain #data(int, int) data} for internal nodes (level &gt; 0) is a hash whose value is
+   * computed using this algorithm. (The data for leaf nodes can be anything and is independent
+   * of this algorithm.)
+   * 
+   * @return a name compatible with {@linkplain MessageDigest#getInstance(String)}
+   */
   public final String getHashAlgo() {
     return algo;
   }
@@ -143,7 +151,7 @@ public abstract class Tree {
   
 
   
-  public final boolean verify(Node node, MessageDigest digest) {
+  final boolean verify(Node node, MessageDigest digest) {
     Objects.requireNonNull(node, "node");
     Objects.requireNonNull(digest, "digest");
     if (!getHashAlgo().equals(digest.getAlgorithm()))
@@ -179,9 +187,11 @@ public abstract class Tree {
   
   /**
    * Returns [a copy of] the data for the node at the specified coordinates.
+   * For internal nodes, this is just the node's hash, which is computed from the hash
+   * of its child nodes; for leaf nodes, the node's data may generally be anything, but
+   * more often than not it's the hash of a source object.
    * 
    * @see Node#data()
-   * @see #data(int, int, ByteBuffer)
    */
   public abstract byte[] data(int level, int index);
   
@@ -195,7 +205,7 @@ public abstract class Tree {
   /**
    * Determines whether the width of the leaves is fixed.
    * 
-   * @return <tt>true</tt> iff the leaf width is not variable
+   * @return <code>true</code> iff the leaf width is not variable
    */
   public final boolean isLeafWidthFixed() {
     return leafWidth() > 0;

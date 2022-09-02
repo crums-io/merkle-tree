@@ -9,7 +9,7 @@ package io.crums.util.mrkl.index;
 public abstract class AbstractNode {
 
   /**
-   * Stateless factory.
+   * Stateless factory for "index" of instances of this class with no additional data.
    */
   public static TreeIndex.NodeFactory<AbstractNode> FACTORY =
     new TreeIndex.NodeFactory<AbstractNode>() {
@@ -34,6 +34,14 @@ public abstract class AbstractNode {
   private final int level;
   private final int index;
 
+  /**
+   * Base constructor.
+   * 
+   * @param level &ge; 0 and &le; 32
+   * @param index &ge; 0
+   * 
+   * @throws IndexOutOfBoundsException if the argument constraints are violated
+   */
   protected AbstractNode(int level, int index) throws IndexOutOfBoundsException {
     this.level = level;
     this.index = index;
@@ -103,6 +111,7 @@ public abstract class AbstractNode {
   }
   
   
+  /** <p>Consistent with {@linkplain #equals(Object)}.</p> {@inheritDoc} */
   @Override
   public final int hashCode() {
     int state = level * 814279 + index;
@@ -111,7 +120,7 @@ public abstract class AbstractNode {
     return state;
   }
   
-  
+  /** @return {@code "(" + level() + ":" + index() + ")"} */
   @Override
   public String toString() {
     return "(" + level + ":" + index + ")";

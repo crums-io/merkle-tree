@@ -40,9 +40,9 @@ public class DeltaBuilder extends FixedLeafBuilder {
    * Creates a new instance.
    * 
    * @param tree        the base tree to start from
-   * @param copyOnWrite if <tt>true</tt>, then every {@linkplain #add(byte[])} is argument
+   * @param copyOnWrite if <code>true</code>, then every {@linkplain #add(byte[])} is argument
    *                    is copied (the argument's value is considered volatile). When you know you won't
-   *                    be modifying the input arguments set this to <tt>false</tt>
+   *                    be modifying the input arguments set this to <code>false</code>
    * 
    */
   public DeltaBuilder(Tree tree, boolean copyOnWrite) {

@@ -14,7 +14,8 @@ import io.crums.util.mrkl.index.AbstractNode;
  * (The leaf nodes can be anything--including another signature.) Instances are
  * immutable, so they're safe to pass around.
  * 
- * <h4>Navigation</h4>
+ * 
+ * <h2>Navigation</h2>
  * 
  * Supports navigating to parent, siblings, and children--as well as random access.
  * Note these access methods return a <em>new</em> object every time they're invoked.
@@ -48,7 +49,11 @@ public class Node extends AbstractNode {
   
   
   /**
-   * Returns a copy of the node's data.
+   * Returns a copy of the node's data. For internal nodes, this is always the hash
+   * of the node itself (computed from the hash of its child nodes); for leaf nodes,
+   * depending on the tree type, this can be the hash of an item, or an item itself.
+   * 
+   * @see Tree#data(int, int)
    */
   public byte[] data() {
     return tree.data(level(), index());
@@ -56,7 +61,12 @@ public class Node extends AbstractNode {
   
   
   /**
-   * Verifies the hash of this node against its children, if it hash any.
+   * Verifies the hash of this node against its children, if it has any.
+   * The verification is <em>not recursive</em>.
+   * <p>
+   * Mostly only for testing. Reason why: in a Merkle tree, you construct
+   * proofs from the bottom up, from leaf to root.
+   * </p>
    */
   public boolean verify(MessageDigest digest) {
     return tree.verify(this, digest);
@@ -72,7 +82,7 @@ public class Node extends AbstractNode {
   }
   
   /**
-   * Returns the sibling that makes this node's parent, or <tt>null</tt>
+   * Returns the sibling that makes this node's parent, or <code>null</code>
    * if this node is root.
    */
   public Node sibling() {
@@ -80,14 +90,14 @@ public class Node extends AbstractNode {
   }
   
   /**
-   * Returns this node's parent, or <tt>null</tt> if this node is root.
+   * Returns this node's parent, or <code>null</code> if this node is root.
    */
   public Node parent() {
     return isRoot() ? null : tree.idx().getParent(this);
   }
   
   /**
-   * Returns this node's left child, or <tt>null</tt> if this node is a leaf.
+   * Returns this node's left child, or <code>null</code> if this node is a leaf.
    * 
    * @see #isLeaf()
    */
@@ -96,7 +106,7 @@ public class Node extends AbstractNode {
   }
   
   /**
-   * Returns this node's right child, or <tt>null</tt> if this node is a leaf.
+   * Returns this node's right child, or <code>null</code> if this node is a leaf.
    * 
    * @see #isLeaf()
    */
@@ -113,7 +123,7 @@ public class Node extends AbstractNode {
   }
   
   /**
-   * Returns the leaf node at the given <tt>index</tt>.
+   * Returns the leaf node at the given <code>index</code>.
    * 
    * @param index     zero-based index into leaf count
    * @see #leafCount()
@@ -123,6 +133,11 @@ public class Node extends AbstractNode {
   }
   
   
+  /**
+   * Determines if the node is a <em>carry</em>. A node is a carry if
+   * it is an internal node and its right child is from a lower level than its
+   * left child.
+   */
   public final boolean isCarry() {
     return !isLeaf() && leftChild().level() != rightChild().level();
   }
@@ -136,6 +151,9 @@ public class Node extends AbstractNode {
   }
   
   
+  /**
+   * Returns the tree this node belongs to.
+   */
   public Tree tree() {
     return tree;
   }

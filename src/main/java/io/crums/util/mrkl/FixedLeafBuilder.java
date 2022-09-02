@@ -8,7 +8,7 @@ import static io.crums.util.mrkl.intenal.Bytes.transfer;
 import io.crums.util.mrkl.index.TreeIndex;
 
 /**
- * 
+ * Builds {@linkplain FixedLeafTree} instances.
  */
 public class FixedLeafBuilder extends Builder {
   
@@ -77,7 +77,7 @@ public class FixedLeafBuilder extends Builder {
   
   /**
    * @param len   = {@linkplain #leafWidth()}
-   * @throws IllegalArgumentException if <tt>len</tt> &ne; {@linkplain #leafWidth()}
+   * @throws IllegalArgumentException if <code>len</code> &ne; {@linkplain #leafWidth()}
    */
   @Override
   public int add(byte[] item, int off, int len) throws IllegalArgumentException, IndexOutOfBoundsException {
@@ -89,7 +89,6 @@ public class FixedLeafBuilder extends Builder {
   
   
   @Override
-  
   public Tree build() {
     synchronized (lock) {
       completeTree();

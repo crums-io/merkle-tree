@@ -11,12 +11,12 @@ import java.util.Objects;
 
 /**
  * A breadth-first view of the <em>structure</em> of a Merkle tree. In this view
- * each node is represented by 2 coordinates <tt>(<em>level, index</em>)</tt>.
+ * each node is represented by 2 coordinates {@code (level, index)}.
  * Levels are counted up from the leaf nodes, with the leaves at level zero; <em>
  * index</em> is just an index into nodes at that level. Instances are immutable and
  * safe under concurrent access.
  * 
- * <h3>Terminology</h3>
+ * <h2>Terminology</h2>
  * <p>
  * Most expositions use the term "promoted" to describe how the last <em>odd</em> node at a
  * level is stitched up the higher node levels to root. (Note in our zero-based index, the
@@ -26,7 +26,7 @@ import java.util.Objects;
  * are always at adjacent indices at the level just below; for carries, however, a node's
  * children may be from different levels (with the left child always at the same or higher level
  * than the right child).
- * </p><p>
+ * </p>
  * <ul>
  * <li><b>Carry.</b> The parent node formed from 2 child nodes at different levels,
  * or a parent node formed if one or more of its descendants have been so formed. 
@@ -35,9 +35,9 @@ import java.util.Objects;
  * would necessarily change if another (single) leaf node had been added.</li>
  * 
  * <li><b>Joins Carry.</b> A child node of a <em>carry</em>. The child node itself may or may not
- * be a carry.
+ * be a carry.</li>
  * </ul>
- * </p><p>
+ * <p>
  * Note, the root node is itself usually a carry. The only times it's not is when the number of
  * leaves is an exact power of 2 in which case there are no carries in the tree. Conversely, if
  * a node is a carry, then every ancestor of it (including the root node), every is another carry.</p>
@@ -46,15 +46,35 @@ import java.util.Objects;
  */
 public class TreeIndex<N extends AbstractNode> {
   
-  
+  /**
+   * A node factory for a {@code TreeIndex}. This controls the return type of the tree-index's
+   * various {@linkplain TreeIndex#getNode(int, int) getNode} member functions.
+   * 
+   * @param <N> the factory-specific {@code AbstractNode} subtype
+   * @see AbstractNode#FACTORY
+   */
   public interface NodeFactory<N extends AbstractNode> {
     
+    /** Optional initialization. Avoid this pattern (overridding this). Default is noop. */
     default void init(TreeIndex<N> host) { }
+    
+    /**
+     * Returns an implementation-specific node at the given coordinates. The coordinates
+     * are already validated by the calling {@code TreeIndex} instance. 
+     */
     N newNode(int level, int index, boolean right);
   }
   
   
   
+  /**
+   * Creates and returns a purely structural tree index (the tree sans data, only node coordinates).
+   * It has a miniscule memory footprint, no matter how large the tree.
+   * 
+   * @param count the number items (leaves) in the tree (&ge; 2)
+   * 
+   * @return {@code new TreeIndex<>(count, AbstractNode.FACTORY)}
+   */
   public static TreeIndex<?> newGeneric(int count) {
     return new TreeIndex<>(count, AbstractNode.FACTORY);
   }
@@ -67,17 +87,22 @@ public class TreeIndex<N extends AbstractNode> {
   
 
   /**
+   * Creates a type-specific instance with the given factory.
    * 
+   * @param count   the number of items (leaf nodes) in the tree (&ge; 2)
+   * @param factory the node factory controls the return type {@code <N>}
+   * 
+   * @see #newGeneric(int)
    */
   public TreeIndex(int count, NodeFactory<N> factory) {
-//    this.count = count;
     this.levelCounts = computeLevelCounts(count);
     this.factory = Objects.requireNonNull(factory, "factory");
     factory.init(this);
   }
   
   /**
-   * Returns the number leaf nodes (data items) in the tree.
+   * Returns the number leaf nodes (data items) in the tree. An instance's
+   * count uniquely determines its structure.
    */
   public final int count() {
     return levelCounts[0];
@@ -86,7 +111,7 @@ public class TreeIndex<N extends AbstractNode> {
   /**
    * Returns the total number of nodes in the tree.
    * 
-   * @return <tt>2 * count() - 1</tt>
+   * @return <code>2 * count() - 1</code>
    */
   public final int totalCount() {
     return 2 * count() - 1;
@@ -117,7 +142,17 @@ public class TreeIndex<N extends AbstractNode> {
   
   
   
-  
+  /**
+   * Returns the serial index of the node at the given cooridinate. A node's serial index
+   * is the node's index in a breadth-first traversal of the tree, starting with the
+   * tree's root node indexed at zero.
+   * 
+   * @param level &ge; 0 and &le; {@code height()}
+   * @param index &ge; 0 and &lt; {@code count(level)}
+   * 
+   * @see #height()
+   * @see #count(int)
+   */
   public final int serialIndex(int level, int index) throws IndexOutOfBoundsException {
     Objects.checkIndex(index, count(level));
     int zeroIndex = 0;
@@ -140,14 +175,16 @@ public class TreeIndex<N extends AbstractNode> {
   
   
   /**
-   * Returns the number of nodes at the given <tt>level</tt>.
+   * Returns the number of nodes at the given {@code level}.
+   * 
+   * @param level &ge; 0 and &le; {@code height()}
    */
   public final int count(int level) throws IndexOutOfBoundsException {
     return levelCounts[level];
   }
   
   /**
-   * Returns the numbern of nodes at the given <tt>level</tt> excluding the
+   * Returns the numbern of nodes at the given {@code level} excluding the
    * carry (if it has one).
    */
   public final int countSansCarry(int level) {
@@ -156,7 +193,7 @@ public class TreeIndex<N extends AbstractNode> {
   
   
   /**
-   * Returns the maximum allowed index at the given <tt>level</tt>.
+   * Returns the maximum allowed index at the given {@code level}.
    * 
    * @return {@linkplain #count(int) count(level)} - 1
    */
@@ -164,7 +201,16 @@ public class TreeIndex<N extends AbstractNode> {
     return levelCounts[level] - 1;
   }
   
-  
+  /**
+   * Determines whether there are an <em>odd</em> number of nodes at this {@code level}
+   * (after accounting for the carries). If so, then the last node at this level joins
+   * the next unpaired node at a higher level to form a parent node one level above that
+   * next unpaired node.
+   * 
+   * @param level &ge; 0 and &le; {@code height()}
+   * 
+   * @return {@code true} <b>iff</b> there are an odd number of nodes at this level
+   */
   public final boolean maxIndexJoinsCarry(int level) throws IndexOutOfBoundsException {
     return (levelCounts[level] & 1) == 1;
   }
@@ -173,6 +219,8 @@ public class TreeIndex<N extends AbstractNode> {
   /**
    * Determines whether the last node is a carry. There is at most one carry in
    * each level.
+   * 
+   * @param level &ge; 0 and &le; {@code height()}
    */
   public final boolean hasCarry(int level) throws IndexOutOfBoundsException {
     return count(level) > countSansCarry(level);
@@ -182,22 +230,36 @@ public class TreeIndex<N extends AbstractNode> {
   /**
    * Determines whether node at the given coordinates is a carry.
    * 
-   * @param level
-   * @param index
-   * @return
+   * @param level &ge; 0 and &le; {@code height()}
+   * @param index &ge; 0 and &lt; {@code count(level)}
+   * @see #height()
+   * @see #count(int)
    */
   public final boolean isCarry(int level, int index) {
     return index == count(level) - 1 && hasCarry(level);
   }
   
   
-  
+  /**
+   * Determines whether the given node is this tree's root node.
+   * 
+   * @return {@code node.level() == height()}
+   * @see AbstractNode#level()
+   */
   public final boolean isRoot(AbstractNode node) {
     return node.level() == height();
   }
   
   
   
+  /**
+   * Returns the node at the given coordinates.
+   * 
+   * @param level &ge; 0 and &le; {@code height()}
+   * @param index &ge; 0 and &lt; {@code count(level)}
+   * @see #height()
+   * @see #count(int)
+   */
   public final N getNode(int level, int index) throws IndexOutOfBoundsException {
     Objects.checkIndex(index, count(level));
     return newNode(level, index, isRight(level, index));
@@ -205,7 +267,12 @@ public class TreeIndex<N extends AbstractNode> {
   
   
   
-  
+  /**
+   * Returns the node at the given <em>serial index</em>.
+   * 
+   * @param serialIndex &ge; 0 and &lt; {@code totalCount()}
+   * @see #serialIndex(int, int)
+   */
   public final N getNode(int serialIndex) throws IndexOutOfBoundsException {
     if (serialIndex < 0)
       throw new IndexOutOfBoundsException(serialIndex);
@@ -226,7 +293,7 @@ public class TreeIndex<N extends AbstractNode> {
   
 
   /**
-   * Convenience method.
+   * Returns the given node's parent. Convenience method.
    * 
    * @see #getParent(int, int)
    */
@@ -234,6 +301,15 @@ public class TreeIndex<N extends AbstractNode> {
     return getParent(node.level(), node.index());
   }
   
+  
+  /**
+   * Returns the <em>parent</em> of the node at the given coordinates.
+   * 
+   * @param level &ge; 0 and <b>&lt;</b> {@code height()}
+   * @param index &ge; 0 and &lt; {@code count(level)}
+   * @see #height()
+   * @see #count(int)
+   */
   public final N getParent(int level, int index) throws IndexOutOfBoundsException {
     AbstractNode sibling = getSibling(level, index);
     if (sibling.isLeft()) {
@@ -249,11 +325,23 @@ public class TreeIndex<N extends AbstractNode> {
   
   
 
-  
+  /**
+   * Returns the <em>left</em> child of the given parent node.
+   * 
+   * @param parent an internal (non-leaf) node
+   */
   public final N getLeftChild(AbstractNode parent) throws IndexOutOfBoundsException {
     return getLeftChild(parent.level(), parent.index());
   }
-  
+
+  /**
+   * Returns the <em>left</em> child of the internal node at the given coordinates.
+   * 
+   * @param level &ge; 0 and &le; {@code height()}
+   * @param index &ge; <b>1</b> and &lt; {@code count(level)}
+   * @see #height()
+   * @see #count(int)
+   */
   public final N getLeftChild(int level, int index) throws IndexOutOfBoundsException {
     Objects.checkFromToIndex(1, level, height());
     return newNode(level - 1, index << 1, false);
@@ -262,11 +350,25 @@ public class TreeIndex<N extends AbstractNode> {
   
   
 
-  
+
+  /**
+   * Returns the <em>right</em> child of the given parent node.
+   * 
+   * @param parent an internal (non-leaf) node
+   */
   public final N getRightChild(AbstractNode parent) throws IndexOutOfBoundsException {
     return getRightChild(parent.level(), parent.index());
   }
   
+
+  /**
+   * Returns the <em>right</em> child of the internal node at the given coordinates.
+   * 
+   * @param level &ge; 0 and &le; {@code height()}
+   * @param index &ge; <b>1</b> and &lt; {@code count(level)}
+   * @see #height()
+   * @see #count(int)
+   */
   public final N getRightChild(int level, int index) throws IndexOutOfBoundsException {
     Objects.checkFromToIndex(1, level, height());
     return getSibling(level - 1, index << 1);
@@ -275,7 +377,7 @@ public class TreeIndex<N extends AbstractNode> {
   
   
   /**
-   * Convenience method.
+   * Returns the given node's sibling. Convenience method.
    * 
    * @see #getSibling(int, int)
    */
@@ -285,8 +387,10 @@ public class TreeIndex<N extends AbstractNode> {
   
   
   /**
+   * Returns the sibling of the node at the given coordinates. Two nodes are siblings
+   * <b>iff</b> they have the same parent node in the tree.
    * 
-   * @param level  0 &le; <em>level</em> &lt; {@linkplain #height()}
+   * @param level  0 &le; <em>level</em> <b>&lt;</b> {@linkplain #height()}
    * @param index  0 &le; <em>index</em> &lt; {@linkplain #count(int) count(level)}
    */
   public final N getSibling(int level, int index) throws IndexOutOfBoundsException {
@@ -326,9 +430,10 @@ public class TreeIndex<N extends AbstractNode> {
    * Determines if the node at the given coordinates is the <em>right</em> child of its parent node.
    * The root level is defined to be left (tho, in principle, it should be undefined).
    * 
-   * @param level between zero and <tt>height()</tt> (inclusive)
-   * @param index the zero-based node index at the given <tt>level</tt>
+   * @param level between zero and {@code height()} (inclusive)
+   * @param index the zero-based node index at the given {@code level}
    * 
+   * @see #height()
    * @see #maxIndex(int)
    */
   public final boolean isRight(int level, int index) throws IndexOutOfBoundsException {
@@ -381,9 +486,10 @@ public class TreeIndex<N extends AbstractNode> {
    * Determines if the node at the given coordinates is the <em>left</em> child of its parent node.
    * The root level is defined to be left (tho, in principle, it should be undefined).
    * 
-   * @param level between zero and <tt>height()</tt> (inclusive)
-   * @param index the zero-based node index at the given <tt>level</tt>
+   * @param level between zero and {@code height()} (inclusive)
+   * @param index the zero-based node index at the given {@code level}
    * 
+   * @see #height()
    * @see #maxIndex(int)
    * @see AbstractNode#isLeft()
    */
@@ -423,7 +529,7 @@ public class TreeIndex<N extends AbstractNode> {
   /**
    * Determines whether an instance is structurally equivalent to another. I.e. it
    * doesn't care about individual node values. As we know, only 1 parameter determines
-   * the structure: the leaf {@linkplain #count() count}.
+   * a tree's structure: the leaf {@linkplain #count() count}.
    */
   @Override
   public final boolean equals(Object o) {
@@ -435,12 +541,17 @@ public class TreeIndex<N extends AbstractNode> {
   }
   
   
+  /**
+   * <p>The instance's hash code is just the number of its leaves.</p>
+   * {@inheritDoc}
+   * @see #equals(Object)
+   */
   @Override
   public final int hashCode() {
     return count();
   }
   
-  
+  /** @return {@code "TreeIndex(" + count() + ")"} */
   @Override
   public String toString() {
     return "TreeIndex(" + count() + ")";
@@ -452,7 +563,7 @@ public class TreeIndex<N extends AbstractNode> {
    * of the leaves is zero.)
    * 
    * @param count &ge; 2
-   * @return <tt>ceil(log2(<em>count</em>)</tt>
+   * @return <code>ceil(log2(<em>count</em>)</code>
    */
   public static int rootHeightForCount(int count) throws IllegalArgumentException {
     if (count < 2)
