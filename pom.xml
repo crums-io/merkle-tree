@@ -4,13 +4,19 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.crums</groupId>
 	<artifactId>merkle-tree</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 
 
 
 
 	<name>${project.groupId}:${project.artifactId}</name>
 	<url>https://crums.io/project/merkle-tree</url>
+	
+	<description>
+  	A flexible Merkle tree implementation with support for
+  	navigating the tree's nodes and constructing Merkle proofs
+  	(about an item's existence in the set).
+	</description>
 	
 	<licenses>
     <license>
@@ -135,7 +141,7 @@
           <configuration>
             <serverId>ossrh</serverId>
             <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-            <autoReleaseAfterClose>false</autoReleaseAfterClose>
+            <autoReleaseAfterClose>true</autoReleaseAfterClose>
           </configuration>
         </plugin>
         
