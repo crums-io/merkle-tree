@@ -2,6 +2,18 @@
 
 A Merkle tree library written in Java.
 
+## Maven
+
+To use this module add this dependency in your POM file:
+
+```
+<dependency>
+  <groupId>io.crums</groupId>
+  <artifactId>merkle-tree</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+
 ## Design Goals
 
 An easy-to-understand, fast, tamper-proof API for building, navigating Merkle tree structures. Support for Merkle tree proofs (of existence).
@@ -60,7 +72,7 @@ There's a good amount javadoc comment in the source. (Useful in IDEs like Eclips
 
 ### Project Doc Site
 
-Project documentation (a version of this page plus javadoc API) is availabe [here](https://crums-io.github.io/merkle-tree/).
+The project doc site is [here](https://crums-io.github.io/merkle-tree/).
 
 
 ## Notes
@@ -87,6 +99,10 @@ Then the statement is true for **T(** *n* **)** = **T(** 2<sup>*k*</sup> **)** =
 The current design exposes data as byte arrays. This necessitates copying the data, since there are is no such thing as a read-only byte array in Java. I resisted using read-only ByteBuffers since a) the data chunks are typically only 32 bytes wide and b) you can't compose a read-only buffer from a bunch of other read-only buffers without copying (a design limitation, imo). Still, a buffer design would be better. Next version, hopefully.
 
 ## Status
+
+Sept 8 2022
+
+> 1.0.0 Released. Available on Maven Central.
 
 Feb 11 2021
 
