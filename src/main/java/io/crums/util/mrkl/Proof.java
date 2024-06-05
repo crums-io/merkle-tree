@@ -15,7 +15,6 @@ import java.util.Objects;
 import io.crums.util.mrkl.index.AbstractNode;
 import io.crums.util.mrkl.index.TreeIndex;
 import io.crums.util.mrkl.intenal.ByteList;
-import io.crums.util.mrkl.intenal.Bytes;
 
 /**
  * A cryptographic path from an item (expressed in bytes) to the
@@ -65,7 +64,7 @@ public class Proof {
     this.leafIndex = leafIndex;
     this.hashChain = new ArrayList<>(chain.length);
     for (byte[] link : chain)
-      hashChain.add(copy ? Bytes.copy(link) : link);
+      hashChain.add(copy ? Arrays.copyOf(link, link.length) : link);
     checkChainLength();
   }
 
@@ -112,6 +111,9 @@ public class Proof {
   
   
   
+  /**
+   * Returns the chain length.
+   */
   public static int chainLength(int leafCount, int leafIndex) {
     
     TreeIndex<?> tree = TreeIndex.newGeneric(leafCount);
@@ -126,14 +128,51 @@ public class Proof {
     
     return count;
   }
+  
+
+  /**
+   * Returns the funnel length.
+   */
+  public static int funnelLength(int leafCount, int leafIndex) {
+    return chainLength(leafCount, leafIndex) - 2;
+  }
 
 
-
-
+  /**
+   * Computes and returns the merkle root for the given item and proof-funnel.
+   * 
+   * <h4>On Proof Funnels</h4>
+   * <p>
+   * In many an application, a merkle proof is a link in a larger hash proof.
+   * Thus, it may be possible (there's already a usecase) that both the {@code item}
+   * and its merkle-coordinates (and even this method's return value) are already
+   * known. In such cases, the {@code proofFunnel} argument below is the most
+   * compact scheme for establishing a cryptographic link to the root hash. 
+   * </p><p>
+   * This funnel concept is not unique to merkle proofs. Time permitting, I'll
+   * flesh it out more.
+   * <p>
+   * 
+   * @param item          the leaf value in the merkle tree; its coordinates follow..
+   * @param index         {@code item} leaf-index in the merkle tree
+   * @param count         no. of items in the merkle tree
+   * @param funnel        intermediate node hashes in a merkle proof
+   * @param digest        digester
+   * 
+   * @return  root hash of the merkle tree
+   * 
+   * @see #funnelLength(int, int)
+   * @see #funnel()
+   */
   public static byte[] merkleRoot(
       ByteBuffer item, int index, int count,
       List<ByteBuffer> funnel,
       MessageDigest digest) {
+
+    if (funnel.size() != funnelLength(count, index))
+      throw new IllegalArgumentException(
+        "funnel size (" + funnel.size() + ") for " + index + ":" + count +
+        "; expected " + funnelLength(count, index));
 
     var chain = new ArrayList<ByteBuffer>() {
           @Override public ByteBuffer get(int index) {
@@ -153,16 +192,6 @@ public class Proof {
   private static byte[] merkeRootInternal(
       int index, int count, List<ByteBuffer> hashChain,
       MessageDigest digest) {
-
-    // if (funnel.size() != chainLength(count, index) - 2)
-    //   throw new IllegalArgumentException();
-
-    // List<ByteBuffer> hashChain = new AbstractList<ByteBuffer>() {
-    //       @Override public int size() { return funnel.size() + 1; }
-    //       @Override public ByteBuffer get(int index) {
-    //         return index == 0 ? item.slice() : funnel.get(index - 1).slice();
-    //       }
-    //     };
 
     TreeIndex<?> tree = TreeIndex.newGeneric(count);
     AbstractNode node = tree.getSibling(0, index);
@@ -211,6 +240,10 @@ public class Proof {
     // assert cindex == funnel.size();
     return hash;
   }
+
+
+
+  
   
   
   @Override
