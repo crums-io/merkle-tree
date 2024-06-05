@@ -6,6 +6,7 @@ package io.crums.util.mrkl;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.util.Random;
 
@@ -85,6 +86,12 @@ public class ProofTest extends TreeTest {
       assertArrayEquals(tree.data(0, leaf), proof.item());
       assertArrayEquals(tree.root().data(), proof.rootHash());
       assertTrue(proof.verify(digest));
+      assertArrayEquals(
+        proof.rootHash(),
+        Proof.merkleRoot(
+          ByteBuffer.wrap(proof.item()),
+          leaf, count,
+          proof.funnel(), digest));
     }
   }
   

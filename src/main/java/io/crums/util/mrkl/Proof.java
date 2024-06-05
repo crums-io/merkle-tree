@@ -106,7 +106,7 @@ public class Proof {
         leafCount,
         chain(),
         digest);
-
+    
     return Arrays.equals(rootHash, rootHash());
   }
   
@@ -130,15 +130,22 @@ public class Proof {
 
 
 
-  // public static byte[] merkleRoot(
-  //   ByteBuffer item, int index, int count,
-  //   List<ByteBuffer> funnel,
-  //   MessageDigest digest) {
+  public static byte[] merkleRoot(
+      ByteBuffer item, int index, int count,
+      List<ByteBuffer> funnel,
+      MessageDigest digest) {
 
-  //   var chain = new AbstractList<ByteBuffer>() {
-          
-  //       };
-  // }
+    var chain = new ArrayList<ByteBuffer>() {
+          @Override public ByteBuffer get(int index) {
+            return super.get(index).slice();
+          }
+        };
+
+    chain.add(item);
+    chain.addAll(funnel);
+
+    return merkeRootInternal(index, count, chain, digest);
+  }
   
 
 
