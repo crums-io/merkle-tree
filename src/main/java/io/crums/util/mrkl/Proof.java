@@ -4,7 +4,9 @@
 package io.crums.util.mrkl;
 
 
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.Objects;
 import io.crums.util.mrkl.index.AbstractNode;
 import io.crums.util.mrkl.index.TreeIndex;
 import io.crums.util.mrkl.intenal.ByteList;
+import io.crums.util.mrkl.intenal.Bytes;
 
 /**
  * A cryptographic path from an item (expressed in bytes) to the
@@ -44,12 +47,14 @@ public class Proof {
       chain.add(parent.sibling().data());
     chain.add(tree.root().data());
     
-    this.hashChain = new ByteList(chain);
+    this.hashChain = chain;
+    checkChainLength();
   }
   
   
   public Proof(String algo, int leafCount, int leafIndex, byte[][] chain) {
     this(algo, leafCount, leafIndex, chain, true);
+    checkChainLength();
   }
   
   
@@ -58,7 +63,19 @@ public class Proof {
     Objects.checkIndex(leafIndex, leafCount);
     this.leafCount = leafCount;
     this.leafIndex = leafIndex;
-    this.hashChain = ByteList.newInstance(chain, copy);
+    this.hashChain = new ArrayList<>(chain.length);
+    for (byte[] link : chain)
+      hashChain.add(copy ? Bytes.copy(link) : link);
+    checkChainLength();
+  }
+
+
+  private void checkChainLength() {
+    int cLen = chainLength(leafCount, leafIndex);
+    if (hashChain.size() != cLen)
+      throw new IllegalArgumentException(
+          "illegal chain length, expected " + cLen + "; but was " +
+          hashChain.size());
   }
   
   
@@ -83,58 +100,14 @@ public class Proof {
       throw new IllegalArgumentException(
           "algo mismatch: expected '" + algo + "'; digest's '" + digest.getAlgorithm() + "'");
     
-    try {
-      
-      TreeIndex<?> tree = TreeIndex.newGeneric(leafCount);
-      AbstractNode node = tree.getSibling(0, leafIndex);
-
-      byte[] hash;
-      
-      if (node.isLeaf()) {
-        byte[] left, right;
-        if (node.isLeft()) {
-          left = hashChain.get(1);
-          right = hashChain.get(0);
-        } else {
-          left = hashChain.get(0);
-          right = hashChain.get(1);
-        }
-        hash = Tree.hashLeaves(left, right, digest);
-        
-      } else {
-        assert node.isLeft();
-        hash = Tree.hashUncommon(hashChain.get(1), hashChain.get(0), digest);
-      }
-      
-      node = tree.getParent(node);
-      
-      int cindex = 2;
-      for (; node.level() != tree.height(); node = tree.getParent(node), ++cindex) {
-        // invariant: *hash belongs to *node
-        byte[] left, right;
-        AbstractNode rightNode;
-        if (node.isLeft()) {
-          left = hash;
-          right = hashChain.get(cindex);
-          rightNode = tree.getSibling(node);
-          assert !node.isLeaf();
-        } else {
-          // node is right
-          left = hashChain.get(cindex);
-          right = hash;
-          rightNode = node;
-        }
-        if (rightNode.isLeaf())
-          hash = Tree.hashUncommon(left, right, digest);
-        else
-          hash = Tree.hashInternals(left, right, digest);
-      }
     
-      return cindex == hashChain.size() - 1 && Arrays.equals(hash, rootHash());
-      
-    } catch (IndexOutOfBoundsException chainTooShort) {
-      return false;
-    }
+    byte[] rootHash = merkeRootInternal(
+        leafIndex,
+        leafCount,
+        chain(),
+        digest);
+
+    return Arrays.equals(rootHash, rootHash());
   }
   
   
@@ -153,6 +126,84 @@ public class Proof {
     
     return count;
   }
+
+
+
+
+  // public static byte[] merkleRoot(
+  //   ByteBuffer item, int index, int count,
+  //   List<ByteBuffer> funnel,
+  //   MessageDigest digest) {
+
+  //   var chain = new AbstractList<ByteBuffer>() {
+          
+  //       };
+  // }
+  
+
+
+
+  private static byte[] merkeRootInternal(
+      int index, int count, List<ByteBuffer> hashChain,
+      MessageDigest digest) {
+
+    // if (funnel.size() != chainLength(count, index) - 2)
+    //   throw new IllegalArgumentException();
+
+    // List<ByteBuffer> hashChain = new AbstractList<ByteBuffer>() {
+    //       @Override public int size() { return funnel.size() + 1; }
+    //       @Override public ByteBuffer get(int index) {
+    //         return index == 0 ? item.slice() : funnel.get(index - 1).slice();
+    //       }
+    //     };
+
+    TreeIndex<?> tree = TreeIndex.newGeneric(count);
+    AbstractNode node = tree.getSibling(0, index);
+
+    byte[] hash;
+    
+    if (node.isLeaf()) {
+      ByteBuffer left, right;
+      if (node.isLeft()) {
+        left = hashChain.get(1);
+        right = hashChain.get(0);
+      } else {
+        left = hashChain.get(0);
+        right = hashChain.get(1);
+      }
+      hash = Tree.hashLeaves(left, right, digest);
+      
+    } else {
+      assert node.isLeft();
+      hash = Tree.hashUncommon(hashChain.get(1), hashChain.get(0), digest);
+    }
+    
+    node = tree.getParent(node);
+    
+    int cindex = 2;
+    for (; node.level() != tree.height(); node = tree.getParent(node), ++cindex) {
+      // invariant: *hash belongs to *node
+      ByteBuffer left, right;
+      AbstractNode rightNode;
+      if (node.isLeft()) {
+        left = ByteBuffer.wrap(hash);
+        right = hashChain.get(cindex);
+        rightNode = tree.getSibling(node);
+        assert !node.isLeaf();
+      } else {
+        // node is right
+        left = hashChain.get(cindex);
+        right = ByteBuffer.wrap(hash);
+        rightNode = node;
+      }
+      if (rightNode.isLeaf())
+        hash = Tree.hashUncommon(left, right, digest);
+      else
+        hash = Tree.hashInternals(left, right, digest);
+    }
+    // assert cindex == funnel.size();
+    return hash;
+  }
   
   
   @Override
@@ -163,7 +214,7 @@ public class Proof {
       Proof other = (Proof) o;
       if (leafIndex != other.leafIndex || leafCount != other.leafCount || !other.algo.equals(algo))
         return false;
-      return other.hashChain.equals(hashChain);
+      return other.hashChain().equals(hashChain());
     } else
       return false;
   }
@@ -217,7 +268,23 @@ public class Proof {
    * </p>
    */
   public final List<byte[]> hashChain() {
-    return hashChain;
+    return new ByteList(hashChain);
+  }
+
+
+
+  public final List<ByteBuffer> chain() {
+    return new AbstractList<ByteBuffer>() {
+          @Override public int size() { return hashChain.size(); }
+          @Override public ByteBuffer get(int index) {
+            return ByteBuffer.wrap(hashChain.get(index)).asReadOnlyBuffer();
+          }
+        };
+  }
+
+
+  public final List<ByteBuffer> funnel() {
+    return chain().subList(1, hashChain.size() - 1);
   }
   
   
@@ -225,7 +292,8 @@ public class Proof {
    * Returns[a copy of] the hash at the root of the Merkle tree.
    */
   public final byte[] rootHash() {
-    return hashChain.get(hashChain.size() - 1);
+    byte[] root = hashChain.get(hashChain.size() - 1);
+    return Arrays.copyOf(root, root.length);
   }
   
   
@@ -233,7 +301,15 @@ public class Proof {
    * Returns [a copy of] the item proven.
    */
   public final byte[] item() {
-    return hashChain.get(0);
+    byte[] item = hashChain.get(0);
+    return Arrays.copyOf(item, item.length);
   }
 
 }
+
+
+
+
+
+
+

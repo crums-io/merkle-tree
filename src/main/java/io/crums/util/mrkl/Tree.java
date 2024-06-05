@@ -4,6 +4,7 @@
 package io.crums.util.mrkl;
 
 
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Objects;
@@ -26,33 +27,109 @@ public abstract class Tree {
   public final static byte BRANCH_PAD = 1;
   
   
-  public static byte[] hashLeaves(byte[] left, byte[] right, MessageDigest digest) {
-    return hashCommon(left, right, digest, LEAF_PAD);
+  public static byte[] hashLeaves(
+      byte[] left, byte[] right, MessageDigest digest) {
+
+    checkArgs(left, right, digest);
+    return hashLeftRight(left, right, digest, LEAF_PAD);
   }
+
+
+  /**
+   * Computes and returns the hash of the given leaf nodes. On return,
+   * the given buffers have no remaining bytes.
+   */
+  public static byte[] hashLeaves(
+      ByteBuffer left, ByteBuffer right, MessageDigest digest) {
+        
+    checkArgs(left, right, digest);
+    return hashLeftRight(left, right, digest, LEAF_PAD);
+  }
+
   
-  public static byte[] hashInternals(byte[] left, byte[] right, MessageDigest digest) {
-    byte[] hash = hashCommon(left, right, digest, BRANCH_PAD);
+  
+  public static byte[] hashInternals(
+      byte[] left, byte[] right, MessageDigest digest) {
+
+    byte[] hash = hashLeftRight(left, right, digest, BRANCH_PAD);
     
     // sanity check
     if (left.length != hash.length)
       throw new IllegalArgumentException(
-          "digest/left length mismatch: " + hash.length +
+          "digest length/left length mismatch: " + hash.length +
           " (" + digest.getAlgorithm() + ") / " + left.length);
     if (right.length != hash.length)
       throw new IllegalArgumentException(
-          "digest/right length mismatch: " + hash.length +
+          "digest length/right length mismatch: " + hash.length +
           " (" + digest.getAlgorithm() + ") / " + right.length);
     
     return hash;
   }
   
-  public static byte[] hashUncommon(byte[] leftInternal, byte[] rightLeaf, MessageDigest digest) {
+
+
+  /**
+   * Computes and returns the hash of the given merkle nodes. On return,
+   * the given buffers have no remaining bytes.
+   */
+  public static byte[] hashInternals(
+      ByteBuffer left, ByteBuffer right, MessageDigest digest) {
+        
+    final int lr = left.remaining(), rr = right.remaining();
+    byte[] hash = hashLeftRight(left, right, digest, BRANCH_PAD);
+    
+    // sanity check
+    if (lr != hash.length)
+      throw new IllegalArgumentException(
+          "digest length /left remaining mismatch: " + hash.length +
+          " (" + digest.getAlgorithm() + ") / " + lr);
+    if (rr != hash.length)
+      throw new IllegalArgumentException(
+          "digest length /right remaining mismatch: " + hash.length +
+          " (" + digest.getAlgorithm() + ") / " + rr);
+    
+    return hash;
+  }
+
+
+
+  
+
+  /**
+   * Computes and returns the hash of the given merkle nodes.
+   */
+  public static byte[] hashUncommon(
+      byte[] leftInternal, byte[] rightLeaf, MessageDigest digest) {
     checkArgs(leftInternal, rightLeaf, digest);
     
     if (leftInternal.length != digest.getDigestLength())
       throw new IllegalArgumentException(
-          "digest/hash length mismatch: " + digest.getDigestLength() +
+          "digest length / leftInternal length mismatch: " +
+          digest.getDigestLength() +
           " (" + digest.getAlgorithm() + ") / " + leftInternal.length);
+    
+    digest.reset();
+    digest.update(BRANCH_PAD);
+    digest.update(leftInternal);
+    digest.update(LEAF_PAD);
+    digest.update(rightLeaf);
+    return digest.digest();
+  }
+
+
+  /**
+   * Computes and returns the hash of the given merkle nodes. On return,
+   * the given buffers have no remaining bytes.
+   */
+  public static byte[] hashUncommon(
+      ByteBuffer leftInternal, ByteBuffer rightLeaf, MessageDigest digest) {
+    checkArgs(leftInternal, rightLeaf, digest);
+    
+    if (leftInternal.remaining() != digest.getDigestLength())
+      throw new IllegalArgumentException(
+          "digest length / leftInternal remaining mismatch: " +
+          digest.getDigestLength() +
+          " (" + digest.getAlgorithm() + ") / " + leftInternal.remaining());
     
     digest.reset();
     digest.update(BRANCH_PAD);
@@ -63,15 +140,17 @@ public abstract class Tree {
   }
   
   
-  private static void checkArgs(byte[] left, byte[] right, MessageDigest digest) {
+  private static void checkArgs(Object left, Object right, MessageDigest digest) {
     Objects.requireNonNull(left, "left");
     Objects.requireNonNull(right, "right");
     Objects.requireNonNull(digest, "digest");
   }
   
   
-  private static byte[] hashCommon(byte[] left, byte[] right, MessageDigest digest, byte padding) {
-    checkArgs(left, right, digest);
+  private static byte[] hashLeftRight(
+      byte[] left, byte[] right, MessageDigest digest, byte padding) {
+    
+    // checkArgs(left, right, digest);
     digest.reset();
     digest.update(padding);
     digest.update(left);
@@ -79,6 +158,23 @@ public abstract class Tree {
     digest.update(right);
     return digest.digest();
   }
+
+
+  
+  
+  private static byte[] hashLeftRight(
+      ByteBuffer left, ByteBuffer right, MessageDigest digest, byte padding) {
+    
+    // checkArgs(left, right, digest);
+    digest.reset();
+    digest.update(padding);
+    digest.update(left);
+    digest.update(padding);
+    digest.update(right);
+    return digest.digest();
+  }
+
+  
   
   
   

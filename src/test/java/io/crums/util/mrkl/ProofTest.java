@@ -39,8 +39,11 @@ public class ProofTest extends TreeTest {
     assertEquals(tree.idx().count(), proof.leafCount());
     assertEquals(3, proof.hashChain().size());
     assertArrayEquals(tree.root().data(), proof.rootHash());
+
     Node node = tree.idx().getNode(0, index);
+    assertArrayEquals(left, node.data());
     assertArrayEquals(node.data(), proof.item());
+    assertArrayEquals(right, node.sibling().data());
     assertArrayEquals(node.sibling().data(), proof.hashChain().get(1));
     assertTrue(proof.verify(newDigest()));
   }
