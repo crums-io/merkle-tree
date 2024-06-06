@@ -146,7 +146,7 @@ public class Proof {
    * In many an application, a merkle proof is a link in a larger hash proof.
    * Thus, it may be possible (there's already a usecase) that both the {@code item}
    * and its merkle-coordinates (and even this method's return value) are already
-   * known. In such cases, the {@code proofFunnel} argument below is the most
+   * known. In such cases, the {@code funnel} argument below is the most
    * compact scheme for establishing a cryptographic link to the root hash. 
    * </p><p>
    * This funnel concept is not unique to merkle proofs. Time permitting, I'll
@@ -313,6 +313,25 @@ public class Proof {
 
 
 
+  /**
+   * Returns the hash chain.
+   * The first element in the list is [a view of] the {@linkplain #item() item}, the last element
+   * is [a view of] the {@linkplain #rootHash() root} of the Merkle tree, and the elements in between
+   * are siblings on the path to root.
+   * <p>
+   * So the element at index 1 is the first element's (the item's) sibling, the element
+   * at index 2 is the sibling of the (implied and calculable) parent of the first 2
+   * elements, the element at index 3 the sibling of the parent of the last element, and so
+   * on, until the last child of root.
+   * </p><p>
+   * Note the returned list does not contain information on its own about the <em>handedness</em>
+   * of the nodes (whether they join their siblings from the left or the right); that is
+   * established the leaf index and leaf count.
+   * </p>
+   * 
+   * @return list that generates a <em>new</em> buffer one each invocation of
+   *          {@link List#get(int)}, of size {@code >= 3}
+   */
   public final List<ByteBuffer> chain() {
     return new AbstractList<ByteBuffer>() {
           @Override public int size() { return hashChain.size(); }
@@ -323,6 +342,13 @@ public class Proof {
   }
 
 
+  /**
+   * Returns the proof's funnel.
+   * 
+   * @return the {@link #chain()} with first and last elements clipped
+   * 
+   * @see #merkleRoot(ByteBuffer, int, int, List, MessageDigest)
+   */
   public final List<ByteBuffer> funnel() {
     return chain().subList(1, hashChain.size() - 1);
   }
