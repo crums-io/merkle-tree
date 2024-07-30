@@ -74,6 +74,14 @@ public class ProofTest extends TreeTest {
   public void testModerate() {
     testRandom(512*1024 - 19);
   }
+
+
+  @Test
+  public void testFunnel() {
+    // I keep forgetting it's tested every time..
+    // So here's a method with that name
+    testRandom(28);
+  }
   
   
   
@@ -109,5 +117,9 @@ public class ProofTest extends TreeTest {
     }
     return builder.build();
   }
+
+
+
+
   
 }
